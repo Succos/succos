@@ -1,0 +1,64 @@
+.photolist {
+    top: 20px;
+    left: 0px;
+    height: auto;
+    overflow: hidden;
+    width: 100%;
+    background: #fff;
+    border: 1px solid #e3e3e3;
+    z-index: 1000;
+    padding: 20px;
+}
+
+.photolist .content {
+    width: 100%;
+    margin-top: 10px;
+    margin-left: 0px;
+}
+
+.photolist h2 {
+    border-bottom: 1px solid #ccc;
+    height: 40px;
+    line-height: 40px;
+}
+
+.photolist .closed {
+
+    right: 10px;
+    top: 10px;
+
+}
+
+.photolist .imgitem img {
+    width: 150px;
+    height: 150px;
+    display: block;
+}
+
+.photolist .imgitem {
+    float: left;
+    width: 150px;
+    height: 200px;
+    margin-left: 10px;
+    margin-top: 10px;
+    text-align: center;
+}
+
+.photolist .action {
+    width: 100%;
+    margin-top: 10px;
+}
+
+.photolist .addimg {
+    width: 150px;
+    height: 200px;
+    float: left;
+    margin-left: 10px;
+    margin-top: 10px;
+}
+
+.addimg img {
+    width: 150px;
+    height: 150px;
+    display: block;
+}

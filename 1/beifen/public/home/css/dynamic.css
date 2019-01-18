@@ -1,0 +1,68 @@
+.dynamic-body {
+    width: 100%;
+    height: auto;
+    display: inline-block;
+    margin-top: -4px;
+    padding-top: 115px;
+    background: url("../images/dynamic_top.png") center 0px no-repeat;
+}
+
+.dynamic-list {
+    width: 1258px;
+    height: auto;
+    min-height: 750px;
+    background: #fff;
+    margin: 0px auto;
+    border-radius: 8px;
+}
+
+.dynamic-list ul li h1 {
+    text-align: center;
+}
+
+.dynamic-list ul li {
+    height: 46px;
+    border-bottom: 1px #f5f5f5 solid;
+    font-size: 17px;
+    padding: 15px 20px;
+    color: #6F6F6F;
+}
+
+.dynamic-list ul li:hover {
+    height: 46px;
+    padding: 15px 20px;
+    background: #eee;
+}
+
+.dynamic-title {
+    height: 115px;
+    font-size: 32px;
+    border-bottom: 1px #f5f5f5 solid;
+    justify-content: center;
+    display: flex;
+    align-items: center;
+
+}
+
+.dynamic-item-title {
+    width: 80%;
+    height: 46px;
+    float: left;
+    overflow: hidden; /*超出的部分隐藏起来。*/
+    white-space: nowrap; /*不显示的地方用省略号...代替*/
+    text-overflow: ellipsis; /* 支持 IE */
+    line-height: 46px;
+}
+
+.dynamic-item-date {
+    height: 46px;
+    float: right;
+    display: flex;
+    align-items: center;
+}
+
+.dynamic-item-date span {
+    font-size: 16px;
+    color: #B5B5B5;
+    margin-right: 17px;
+}

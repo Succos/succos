@@ -1,0 +1,215 @@
+
+/*.baottTop .topNav ul li a{*/
+    /*font-size: 26px;*/
+/*}*/
+
+/*.baottTop .topNav ul li a.on {*/
+    /*color: #4296d1;*/
+    /*height: 92px;*/
+    /*line-height: 92px;*/
+    /*font-weight: 500;*/
+    /*border-top: 4px solid #4296d1;*/
+/*}*/
+.btn {
+    border-radius: 8px;
+    font-size: 14px;
+    outline: none;
+    text-align: center;
+    vertical-align: middle;
+    padding: 2px 2px;
+    min-width: 103px;
+}
+
+.register_default_hover_primary{
+    color: #29d170;
+    border: 1px #29d170 solid;
+}
+
+.register_default_hover_primary:hover{
+    color: #fff;
+    border: 1px #29d170 solid;
+    background: #29d170;
+}
+
+.login_default_hover_primary{
+    color: #fd5c15;
+    border: 1px #fd5c15 solid;
+}
+
+.login_default_hover_primary:hover{
+    color: #fff;
+    border: 1px #fd5c15 solid;
+    background: #fd5c15;
+}
+
+.margin_right_40px {
+    margin-right: 10px;
+}
+
+.button_view{
+    align-items: center;
+    display: flex;
+    margin-top: 25px;
+    margin-right: 20px
+}
+
+.btn_default_hover_primary {
+    color: #636b73;
+    border: 1px solid #bcbcbc;
+}
+
+.wxb_app_img{
+    width: 280px;
+    height: 188px;
+}
+
+.wxb_app_header{
+    width: 100%;
+    height: auto;
+    display: flex;
+}
+
+.wxb_app_header .title{
+    width: 70%;
+    text-align: left;
+    margin: 10px 3%;
+    font-size: 16px;
+    color: #000000;
+    padding: 3px 10px;
+}
+
+.wxb_app_header .use{
+    width: 20%;
+    margin: 10px 2%;
+    font-size: 16px;
+    border: 1px #4296d1 solid;
+    border-radius: 10px;
+    color: #4296d1;
+    padding: 3px 6px;
+}
+
+.wxb_app_header .use:hover{
+    width: 20%;
+    margin: 10px 2%;
+    font-size: 16px;
+    border: 1px #4296d1 solid;
+    background: #4296d1;
+    border-radius: 10px;
+    color: #fff;
+    padding: 3px 6px;
+}
+
+.wxb_app_details{
+    text-align: left;
+    margin: 0 3%;
+    font-size: 14px;
+	line-height: 19px;
+    padding: 3px 10px;
+    color:#666666;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+}
+
+.user_info{
+    width: 400px;
+    height: 70px;
+    margin: 22px 22px;
+}
+
+.user_face{
+    width: 70px;
+    height: 70px;
+    float: left;
+    border-radius: 6px;
+}
+
+.user_name{
+    height: 70px;
+    width: 280px;
+    text-align: left;
+    padding-left: 15px;
+    align-items: center;
+    font-size: 17px;
+    color: #000;
+    display: flex;
+}
+
+.user_details{
+    margin: -5px 20px;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    color: #666666;
+    font-size: 16px;
+}
+
+.swiper-container .swiper-wrapper .swiper-slide{
+    width: 1920px;
+    height: 500px;
+    margin: auto;
+    position: relative;
+}
+
+.swiper-slide-1{
+    width: 1920px;
+    height: 800px;
+    background-image: url("../images/banner_01.png");
+    /*background-repeat: repeat-x;*/
+}
+.swiper-slide-2{
+    width: 1920px;
+    height: 800px;
+    background-image: url("../images/banner_01.png");
+    /*background-repeat: repeat-x;*/
+}
+.swiper-slide-3{
+    width: 1920px;
+    height: 800px;
+    background-image: url("../images/banner_01.png");
+    /*background-repeat: repeat-x;*/
+}
+
+.swiper-pagination-bullet {
+    width: 21px;
+    height: 21px;
+    display: inline-block;
+    border-radius: 100%;
+    background: white;
+    opacity: 0.3;
+    -moz-opacity: 0.3;
+    filter: alpha(opacity=30);
+}
+
+.swiper-pagination-bullet-active{
+    opacity: 1;
+    -moz-opacity: 1;
+    filter: alpha(opacity=100);
+}
+
+.wxb-main-hot-title {
+    font-size: 12px;
+    color: #999999;
+    font-weight: bolder;
+    position: relative;
+}
+
+.wxb-main-link-item{
+    float: left; list-style:none;margin-left: 30px; margin-top:7px;font-size: 17px;
+    display: inline-block;
+}
+
+.bottom-link{
+    width:100%; height: 40px; display: flex; justify-content: center;
+    font-size: 14px;
+}
+
+.bottom-link-child{
+    width:1200px; height: auto; text-align: left;
+}
+
