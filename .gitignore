@@ -13,7 +13,7 @@ nbproject
 Thumbs.db
 
 # composer vendor dir
-/vendor
+
 
 # composer itself is not needed
 composer.phar
@@ -22,7 +22,7 @@ composer.phar
 .DS_Store
 
 # phpunit itself is not needed
-phpunit.phar
+
 # local phpunit config
 /phpunit.xml
 
