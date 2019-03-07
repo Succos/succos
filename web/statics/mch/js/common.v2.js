@@ -420,7 +420,11 @@ $(document).on('change', '.upload-group .file-input', function () {
     var group = input.parents('.upload-group');
     var preview_img = group.find('.upload-preview-img');
     preview_img.attr('src', input.val());
+
 });
+
+
+
 $(document).on('click', '.upload-group .file-item-delete', function () {
     var btn = $(this);
     var preview = btn.parents('.upload-preview');
