@@ -10,7 +10,6 @@ namespace yii\caching;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\db\Connection;
-use yii\db\PdoValue;
 use yii\db\Query;
 use yii\di\Instance;
 
@@ -102,7 +101,7 @@ class DbCache extends Cache
     {
         $key = $this->buildKey($key);
 
-        $query = new Query();
+        $query = new Query;
         $query->select(['COUNT(*)'])
             ->from($this->cacheTable)
             ->where('[[id]] = :id AND ([[expire]] = 0 OR [[expire]] >' . time() . ')', [':id' => $key]);
@@ -126,7 +125,7 @@ class DbCache extends Cache
      */
     protected function getValue($key)
     {
-        $query = new Query();
+        $query = new Query;
         $query->select(['data'])
             ->from($this->cacheTable)
             ->where('[[id]] = :id AND ([[expire]] = 0 OR [[expire]] >' . time() . ')', [':id' => $key]);
@@ -138,7 +137,6 @@ class DbCache extends Cache
 
             return $result;
         }
-
         return $query->createCommand($this->db)->queryScalar();
     }
 
@@ -152,7 +150,7 @@ class DbCache extends Cache
         if (empty($keys)) {
             return [];
         }
-        $query = new Query();
+        $query = new Query;
         $query->select(['id', 'data'])
             ->from($this->cacheTable)
             ->where(['id' => $keys])
@@ -171,11 +169,7 @@ class DbCache extends Cache
             $results[$key] = false;
         }
         foreach ($rows as $row) {
-            if (is_resource($row['data']) && get_resource_type($row['data']) === 'stream') {
-                $results[$row['id']] = stream_get_contents($row['data']);
-            } else {
-                $results[$row['id']] = $row['data'];
-            }
+            $results[$row['id']] = $row['data'];
         }
 
         return $results;
@@ -196,7 +190,7 @@ class DbCache extends Cache
             $command = $db->createCommand()
                 ->update($this->cacheTable, [
                     'expire' => $duration > 0 ? $duration + time() : 0,
-                    'data' => new PdoValue($value, \PDO::PARAM_LOB),
+                    'data' => [$value, \PDO::PARAM_LOB],
                 ], ['id' => $key]);
             return $command->execute();
         });
@@ -206,7 +200,6 @@ class DbCache extends Cache
 
             return true;
         }
-
         return $this->addValue($key, $value, $duration);
     }
 
@@ -229,7 +222,7 @@ class DbCache extends Cache
                     ->insert($this->cacheTable, [
                         'id' => $key,
                         'expire' => $duration > 0 ? $duration + time() : 0,
-                        'data' => new PdoValue($value, \PDO::PARAM_LOB),
+                        'data' => [$value, \PDO::PARAM_LOB],
                     ])->execute();
             });
 

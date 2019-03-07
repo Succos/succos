@@ -10,42 +10,23 @@ class Descriptor
     /**
      * Provides a test name which can be located by
      *
-     * @param \PHPUnit\Framework\SelfDescribing $testCase
+     * @param \PHPUnit_Framework_SelfDescribing $testCase
      * @return string
      */
-    public static function getTestSignature(\PHPUnit\Framework\SelfDescribing $testCase)
+    public static function getTestSignature(\PHPUnit_Framework_SelfDescribing $testCase)
     {
         if ($testCase instanceof Descriptive) {
             return $testCase->getSignature();
         }
-        if ($testCase instanceof \PHPUnit\Framework\TestCase) {
+        if ($testCase instanceof \PHPUnit_Framework_TestCase) {
             return get_class($testCase) . ':' . $testCase->getName(false);
         }
         return $testCase->toString();
     }
 
-    /**
-     * Provides a test name which is unique for individual iterations of tests using examples
-     *
-     * @param \PHPUnit\Framework\SelfDescribing $testCase
-     * @return string
-     */
-    public static function getTestSignatureUnique(\PHPUnit\Framework\SelfDescribing $testCase)
+    public static function getTestAsString(\PHPUnit_Framework_SelfDescribing $testCase)
     {
-        $example = null;
-
-        if (is_callable([$testCase, 'getMetadata'])
-            && $example = $testCase->getMetadata()->getCurrent('example')
-        ) {
-            $example = ':' . substr(sha1(json_encode($example)), 0, 7);
-        }
-
-        return self::getTestSignature($testCase) . $example;
-    }
-
-    public static function getTestAsString(\PHPUnit\Framework\SelfDescribing $testCase)
-    {
-        if ($testCase instanceof \PHPUnit\Framework\TestCase) {
+        if ($testCase instanceof \PHPUnit_Framework_TestCase) {
             $text = $testCase->getName();
             $text = preg_replace('/([A-Z]+)([A-Z][a-z])/', '\\1 \\2', $text);
             $text = preg_replace('/([a-z\d])([A-Z])/', '\\1 \\2', $text);
@@ -61,10 +42,10 @@ class Descriptor
     /**
      * Provides a test file name relative to Codeception root
      *
-     * @param \PHPUnit\Framework\SelfDescribing $testCase
+     * @param \PHPUnit_Framework_SelfDescribing $testCase
      * @return mixed
      */
-    public static function getTestFileName(\PHPUnit\Framework\SelfDescribing $testCase)
+    public static function getTestFileName(\PHPUnit_Framework_SelfDescribing $testCase)
     {
         if ($testCase instanceof Descriptive) {
             return codecept_relative_path(realpath($testCase->getFileName()));
@@ -73,10 +54,10 @@ class Descriptor
     }
 
     /**
-     * @param \PHPUnit\Framework\SelfDescribing $testCase
+     * @param \PHPUnit_Framework_SelfDescribing $testCase
      * @return mixed|string
      */
-    public static function getTestFullName(\PHPUnit\Framework\SelfDescribing $testCase)
+    public static function getTestFullName(\PHPUnit_Framework_SelfDescribing $testCase)
     {
         if ($testCase instanceof Plain) {
             return self::getTestFileName($testCase);
@@ -85,7 +66,7 @@ class Descriptor
             $signature = $testCase->getSignature(); // cut everything before ":" from signature
             return self::getTestFileName($testCase) . ':' . preg_replace('~^(.*?):~', '', $signature);
         }
-        if ($testCase instanceof \PHPUnit\Framework\TestCase) {
+        if ($testCase instanceof \PHPUnit_Framework_TestCase) {
             return self::getTestFileName($testCase) . ':' . $testCase->getName(false);
         }
         return self::getTestFileName($testCase) . ':' . $testCase->toString();

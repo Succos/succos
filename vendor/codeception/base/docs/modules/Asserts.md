@@ -3,6 +3,7 @@
 
 Special module for using asserts in your tests.
 
+
 ## Actions
 
 ### assertArrayHasKey
@@ -17,16 +18,6 @@ Special module for using asserts in your tests.
  * `param` $key
  * `param` $actual
  * `param` $description
-
-
-### assertArraySubset
- 
-Checks that array contains subset.
-
- * `param array`  $subset
- * `param array`  $array
- * `param bool`   $strict
- * `param string` $message
 
 
 ### assertContains
@@ -271,24 +262,6 @@ Checks that two variables are same
  * `param string` $message
 
 
-### assertStringStartsNotWith
- 
-Checks that a string doesn't start with the given prefix.
-
- * `param string` $prefix
- * `param string` $string
- * `param string` $message
-
-
-### assertStringStartsWith
- 
-Checks that a string starts with the given prefix.
-
- * `param string` $prefix
- * `param string` $string
- * `param string` $message
-
-
 ### assertTrue
  
 Checks that condition is positive.
@@ -331,4 +304,4 @@ Fails the test with message.
 
  * `param` $message
 
-<p>&nbsp;</p><div class="alert alert-warning">Module reference is taken from the source code. <a href="https://github.com/Codeception/Codeception/tree/2.4/src/Codeception/Module/Asserts.php">Help us to improve documentation. Edit module reference</a></div>
+<p>&nbsp;</p><div class="alert alert-warning">Module reference is taken from the source code. <a href="https://github.com/Codeception/Codeception/tree/2.3/src/Codeception/Module/Asserts.php">Help us to improve documentation. Edit module reference</a></div>

@@ -72,10 +72,10 @@ class BaseVarDumper
                 self::$_output .= $var ? 'true' : 'false';
                 break;
             case 'integer':
-                self::$_output .= (string)$var;
+                self::$_output .= "$var";
                 break;
             case 'double':
-                self::$_output .= (string)$var;
+                self::$_output .= "$var";
                 break;
             case 'string':
                 self::$_output .= "'" . addslashes($var) . "'";

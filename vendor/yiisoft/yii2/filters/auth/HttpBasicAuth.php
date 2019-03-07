@@ -47,13 +47,6 @@ namespace yii\filters\auth;
  * }
  * ```
  *
- * > Tip: In case authentication does not work like expected, make sure your web server passes
- * username and password to `$_SERVER['PHP_AUTH_USER']` and `$_SERVER['PHP_AUTH_PW']` variables.
- * If you are using Apache with PHP-CGI, you might need to add this line to your `.htaccess` file:
- * ```
- * RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization},L]
- * ```
- *
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
@@ -67,7 +60,6 @@ class HttpBasicAuth extends AuthMethod
      * @var callable a PHP callable that will authenticate the user with the HTTP basic auth information.
      * The callable receives a username and a password as its parameters. It should return an identity object
      * that matches the username and password. Null should be returned if there is no such identity.
-     * The callable will be called only if current user is not authenticated.
      *
      * The following code is a typical implementation of this callable:
      *
@@ -88,22 +80,21 @@ class HttpBasicAuth extends AuthMethod
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function authenticate($user, $request, $response)
     {
-        list($username, $password) = $request->getAuthCredentials();
+        $username = $request->getAuthUser();
+        $password = $request->getAuthPassword();
 
         if ($this->auth) {
             if ($username !== null || $password !== null) {
-                $identity = $user->getIdentity() ?: call_user_func($this->auth, $username, $password);
-
-                if ($identity === null) {
-                    $this->handleFailure($response);
-                } elseif ($user->getIdentity(false) !== $identity) {
+                $identity = call_user_func($this->auth, $username, $password);
+                if ($identity !== null) {
                     $user->switchIdentity($identity);
+                } else {
+                    $this->handleFailure($response);
                 }
-
                 return $identity;
             }
         } elseif ($username !== null) {
@@ -111,7 +102,6 @@ class HttpBasicAuth extends AuthMethod
             if ($identity === null) {
                 $this->handleFailure($response);
             }
-
             return $identity;
         }
 
@@ -119,7 +109,7 @@ class HttpBasicAuth extends AuthMethod
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function challenge($response)
     {

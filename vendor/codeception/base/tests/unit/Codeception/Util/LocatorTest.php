@@ -3,7 +3,7 @@
 use Codeception\Util\Locator;
 use Facebook\WebDriver\WebDriverBy;
 
-class LocatorTest extends \PHPUnit\Framework\TestCase
+class LocatorTest extends PHPUnit_Framework_TestCase
 {
 
     public function testCombine()

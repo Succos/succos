@@ -5,9 +5,9 @@ $.confirm = function (args) {
     var confirmText = args.confirmText || "确认";
     var cancelText = args.cancelText || "取消";
     var confirm = args.confirm || function () {
-    };
+        };
     var cancel = args.cancel || function () {
-    };
+        };
     var id = $.randomString();
     var html = '';
     html += '<div class="modal fade" data-backdrop="static" id="' + id + '">';
@@ -44,9 +44,9 @@ $.prompt = function (args) {
     var confirmText = args.confirmText || "确认";
     var cancelText = args.cancelText || "取消";
     var confirm = args.confirm || function () {
-    };
+        };
     var cancel = args.cancel || function () {
-    };
+        };
     var id = $.randomString();
     var html = '';
     html += '<div class="modal fade" data-backdrop="static" id="' + id + '">';
@@ -87,7 +87,7 @@ $.alert = function (args) {
     var content = args.content || "";
     var confirmText = args.confirmText || "确认";
     var confirm = args.confirm || function () {
-    };
+        };
     var id = $.randomString();
     var html = '';
     html += '<div class="modal fade" data-backdrop="static" id="' + id + '">';

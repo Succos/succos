@@ -5,11 +5,7 @@ use yii\web\Response;
 
 class Controller extends \yii\web\Controller
 {
-    /**
-     * 返回json格式数据，将执行 \Yii::$app->end() 操作
-     * @param array|string $data 返回的数据，数组或json字符串
-     * @return null
-     */
+
     public function renderJson($data = [])
     {
         if (is_array($data)) {
@@ -32,6 +28,7 @@ class Controller extends \yii\web\Controller
         }
         header("Content-type: application/json; charset=" . \Yii::$app->charset);
         \Yii::$app->response->format = Response::FORMAT_JSON;
+        echo $data;
         \Yii::$app->end();
         return null;
     }

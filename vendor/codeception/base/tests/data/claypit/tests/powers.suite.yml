@@ -1,6 +1,6 @@
 class_name: PowerGuy
 modules:
-    enabled: [PowerHelper, Asserts]
+    enabled: [PowerHelper]
 env:
     dev:
         modules:

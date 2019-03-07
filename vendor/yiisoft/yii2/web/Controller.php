@@ -7,9 +7,11 @@
 
 namespace yii\web;
 
+use Curl\Curl;
 use Yii;
 use yii\base\InlineAction;
 use yii\helpers\Url;
+use yii\helpers\VarDumper;
 
 /**
  * Controller is the base class of web controllers.
@@ -129,7 +131,7 @@ class Controller extends \yii\base\Controller
             $name = $param->getName();
             if (array_key_exists($name, $params)) {
                 if ($param->isArray()) {
-                    $args[] = $actionParams[$name] = (array) $params[$name];
+                    $args[] = $actionParams[$name] = (array)$params[$name];
                 } elseif (!is_array($params[$name])) {
                     $args[] = $actionParams[$name] = $params[$name];
                 } else {
@@ -157,7 +159,7 @@ class Controller extends \yii\base\Controller
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function beforeAction($action)
     {
@@ -165,7 +167,6 @@ class Controller extends \yii\base\Controller
             if ($this->enableCsrfValidation && Yii::$app->getErrorHandler()->exception === null && !Yii::$app->getRequest()->validateCsrfToken()) {
                 throw new BadRequestHttpException(Yii::t('yii', 'Unable to verify your data submission.'));
             }
-
             return true;
         }
 
@@ -194,7 +195,7 @@ class Controller extends \yii\base\Controller
      * into an absolute one by prepending it with the host info of the current request.
      *
      * @param int $statusCode the HTTP status code. Defaults to 302.
-     * See <https://tools.ietf.org/html/rfc2616#section-10>
+     * See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html>
      * for details about HTTP status code
      * @return Response the current response object
      */
@@ -262,4 +263,10 @@ class Controller extends \yii\base\Controller
     {
         return Yii::$app->getResponse()->redirect(Yii::$app->getRequest()->getUrl() . $anchor);
     }
+
+    public function init()
+    {
+        parent::init();
+    }
+
 }

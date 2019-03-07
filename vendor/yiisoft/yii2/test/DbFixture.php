@@ -7,9 +7,10 @@
 
 namespace yii\test;
 
-use yii\base\BaseObject;
+use Yii;
 use yii\db\Connection;
 use yii\di\Instance;
+use yii\base\BaseObject;
 
 /**
  * DbFixture is the base class for DB-related fixtures.
@@ -33,7 +34,7 @@ abstract class DbFixture extends Fixture
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function init()
     {

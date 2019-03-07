@@ -16,6 +16,6 @@ create table [session]
 (
     [id]  varchar(256) not null,
     [expire] integer,
-    [data]   nvarchar(max),
+    [data]   VARBINARY(MAX),
     primary key ([id])
 );

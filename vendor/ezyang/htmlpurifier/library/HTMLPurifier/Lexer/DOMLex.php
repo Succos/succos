@@ -127,41 +127,6 @@ class HTMLPurifier_Lexer_DOMLex extends HTMLPurifier_Lexer
     }
 
     /**
-     * Portably retrieve the tag name of a node; deals with older versions
-     * of libxml like 2.7.6
-     * @param DOMNode $node
-     */
-    protected function getTagName($node)
-    {
-        if (property_exists($node, 'tagName')) {
-            return $node->tagName;
-        } else if (property_exists($node, 'nodeName')) {
-            return $node->nodeName;
-        } else if (property_exists($node, 'localName')) {
-            return $node->localName;
-        }
-        return null;
-    }
-
-    /**
-     * Portably retrieve the data of a node; deals with older versions
-     * of libxml like 2.7.6
-     * @param DOMNode $node
-     */
-    protected function getData($node)
-    {
-        if (property_exists($node, 'data')) {
-            return $node->data;
-        } else if (property_exists($node, 'nodeValue')) {
-            return $node->nodeValue;
-        } else if (property_exists($node, 'textContent')) {
-            return $node->textContent;
-        }
-        return null;
-    }
-
-
-    /**
      * @param DOMNode $node DOMNode to be tokenized.
      * @param HTMLPurifier_Token[] $tokens   Array-list of already tokenized tokens.
      * @param bool $collect  Says whether or start and close are collected, set to
@@ -176,10 +141,7 @@ class HTMLPurifier_Lexer_DOMLex extends HTMLPurifier_Lexer
         // but we're not getting the character reference nodes because
         // those should have been preprocessed
         if ($node->nodeType === XML_TEXT_NODE) {
-            $data = $this->getData($node); // Handle variable data property
-            if ($data !== null) {
-              $tokens[] = $this->factory->createText($data);
-            }
+            $tokens[] = $this->factory->createText($node->data);
             return false;
         } elseif ($node->nodeType === XML_CDATA_SECTION_NODE) {
             // undo libxml's special treatment of <script> and <style> tags
@@ -209,20 +171,21 @@ class HTMLPurifier_Lexer_DOMLex extends HTMLPurifier_Lexer
             // not-well tested: there may be other nodes we have to grab
             return false;
         }
+
         $attr = $node->hasAttributes() ? $this->transformAttrToAssoc($node->attributes) : array();
-        $tag_name = $this->getTagName($node); // Handle variable tagName property
-        if (empty($tag_name)) {
-            return (bool) $node->childNodes->length;
-        }
+
         // We still have to make sure that the element actually IS empty
         if (!$node->childNodes->length) {
             if ($collect) {
-                $tokens[] = $this->factory->createEmpty($tag_name, $attr);
+                $tokens[] = $this->factory->createEmpty($node->tagName, $attr);
             }
             return false;
         } else {
             if ($collect) {
-                $tokens[] = $this->factory->createStart($tag_name, $attr);
+                $tokens[] = $this->factory->createStart(
+                    $tag_name = $node->tagName, // somehow, it get's dropped
+                    $attr
+                );
             }
             return true;
         }
@@ -234,9 +197,9 @@ class HTMLPurifier_Lexer_DOMLex extends HTMLPurifier_Lexer
      */
     protected function createEndNode($node, &$tokens)
     {
-        $tag_name = $this->getTagName($node); // Handle variable tagName property
-        $tokens[] = $this->factory->createEnd($tag_name);
+        $tokens[] = $this->factory->createEnd($node->tagName);
     }
+
 
     /**
      * Converts a DOMNamedNodeMap of DOMAttr objects into an assoc array.

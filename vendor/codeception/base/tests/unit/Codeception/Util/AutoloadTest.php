@@ -4,7 +4,7 @@ require_once 'MockAutoload.php';
 
 use Codeception\Util\MockAutoload as Autoload;
 
-class AutoloadTest extends \PHPUnit\Framework\TestCase
+class AutoloadTest extends PHPUnit_Framework_TestCase
 {
 
     protected function setUp()

@@ -3,7 +3,6 @@ namespace Codeception\Test;
 
 use Codeception\TestInterface;
 use Codeception\Util\ReflectionHelper;
-use SebastianBergmann\Timer\Timer;
 
 /**
  * The most simple testcase (with only one test in it) which can be executed by PHPUnit/Codeception.
@@ -61,10 +60,10 @@ abstract class Test implements TestInterface, Interfaces\Descriptive
      * Runs a test and collects its result in a TestResult instance.
      * Executes before/after hooks coming from traits.
      *
-     * @param  \PHPUnit\Framework\TestResult $result
-     * @return \PHPUnit\Framework\TestResult
+     * @param  \PHPUnit_Framework_TestResult $result
+     * @return \PHPUnit_Framework_TestResult
      */
-    final public function run(\PHPUnit\Framework\TestResult $result = null)
+    final public function run(\PHPUnit_Framework_TestResult $result = null)
     {
         $this->testResult = $result;
 
@@ -83,23 +82,22 @@ abstract class Test implements TestInterface, Interfaces\Descriptive
         $failedToStart = ReflectionHelper::readPrivateProperty($result, 'lastTestFailed');
 
         if (!$this->ignored && !$failedToStart) {
-
-            Timer::start();
+            \PHP_Timer::start();
             try {
                 $this->test();
                 $status = self::STATUS_OK;
-            } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+            } catch (\PHPUnit_Framework_AssertionFailedError $e) {
                 $status = self::STATUS_FAIL;
-            } catch (\PHPUnit\Framework\Exception $e) {
+            } catch (\PHPUnit_Framework_Exception $e) {
                 $status = self::STATUS_ERROR;
             } catch (\Throwable $e) {
-                $e     = new \PHPUnit\Framework\ExceptionWrapper($e);
+                $e     = new \PHPUnit_Framework_ExceptionWrapper($e);
                 $status = self::STATUS_ERROR;
             } catch (\Exception $e) {
-                $e     = new \PHPUnit\Framework\ExceptionWrapper($e);
+                $e     = new \PHPUnit_Framework_ExceptionWrapper($e);
                 $status = self::STATUS_ERROR;
             }
-            $time = Timer::stop();
+            $time = \PHP_Timer::stop();
         }
 
         foreach (array_reverse($this->hooks) as $hook) {

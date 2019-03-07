@@ -1,7 +1,7 @@
 <?php
 
 
-class AMQPTest extends \PHPUnit\Framework\TestCase
+class AMQPTest extends \PHPUnit_Framework_TestCase
 {
     protected $config = array(
         'host'     => 'localhost',

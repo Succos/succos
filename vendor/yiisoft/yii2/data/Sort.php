@@ -8,8 +8,8 @@
 namespace yii\data;
 
 use Yii;
-use yii\base\BaseObject;
 use yii\base\InvalidConfigException;
+use yii\base\BaseObject;
 use yii\helpers\Html;
 use yii\helpers\Inflector;
 use yii\web\Request;
@@ -257,7 +257,8 @@ class Sort extends BaseObject
                 $params = $request instanceof Request ? $request->getQueryParams() : [];
             }
             if (isset($params[$this->sortParam])) {
-                foreach ($this->parseSortParam($params[$this->sortParam]) as $attribute) {
+                $attributes = $this->parseSortParam($params[$this->sortParam]);
+                foreach ($attributes as $attribute) {
                     $descending = false;
                     if (strncmp($attribute, '-', 1) === 0) {
                         $descending = true;
@@ -411,9 +412,9 @@ class Sort extends BaseObject
         $urlManager = $this->urlManager === null ? Yii::$app->getUrlManager() : $this->urlManager;
         if ($absolute) {
             return $urlManager->createAbsoluteUrl($params);
+        } else {
+            return $urlManager->createUrl($params);
         }
-
-        return $urlManager->createUrl($params);
     }
 
     /**

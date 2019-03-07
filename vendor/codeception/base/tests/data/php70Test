@@ -1,6 +1,6 @@
 <?php
 
-class php70Test extends \PHPUnit\Framework\TestCase
+class php70Test extends PHPUnit_Framework_TestCase
 {
     public function testOfTest() {
         $a = new class('foo') {};

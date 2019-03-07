@@ -3,6 +3,7 @@
 namespace app\modules\mch\controllers;
 
 use app\models\Store;
+use app\models\WechatApp;
 use app\modules\mch\models\MchMenu;
 
 class Controller extends \app\controllers\Controller
@@ -29,9 +30,11 @@ class Controller extends \app\controllers\Controller
     public function init()
     {
         parent::init();
+        $this->enableCsrfValidation=false;
         $this->store = Store::findOne([
             'id' => \Yii::$app->session->get('store_id'),
         ]);
+        $this->wechat_app=WechatApp::findOne(['id'=>$this->store->wechat_app_id]);
     }
     public function getMenuList(){
         $menu_list=new MchMenu;

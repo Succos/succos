@@ -43,12 +43,12 @@ class Unit implements LoaderInterface
 
     protected function createTestFromPhpUnitMethod(\ReflectionClass $class, \ReflectionMethod $method)
     {
-        if (!\PHPUnit\Framework\TestSuite::isTestMethod($method)) {
+        if (!\PHPUnit_Framework_TestSuite::isTestMethod($method)) {
             return;
         }
-        $test = \PHPUnit\Framework\TestSuite::createTest($class, $method->name);
+        $test = \PHPUnit_Framework_TestSuite::createTest($class, $method->name);
 
-        if ($test instanceof \PHPUnit\Framework\DataProviderTestSuite) {
+        if ($test instanceof \PHPUnit_Framework_TestSuite_DataProvider) {
             foreach ($test->tests() as $t) {
                 $this->enhancePhpunitTest($t);
             }
@@ -59,15 +59,16 @@ class Unit implements LoaderInterface
         return $test;
     }
 
-    protected function enhancePhpunitTest(\PHPUnit\Framework\Test $test)
+    protected function enhancePhpunitTest(\PHPUnit_Framework_TestCase $test)
     {
         $className = get_class($test);
         $methodName = $test->getName(false);
-        $dependencies = \PHPUnit\Util\Test::getDependencies($className, $methodName);
+        $dependencies = \PHPUnit_Util_Test::getDependencies($className, $methodName);
         $test->setDependencies($dependencies);
         if ($test instanceof UnitFormat) {
-            $test->getMetadata()->setParamsFromAnnotations(Annotation::forMethod($test, $methodName)->raw());
             $test->getMetadata()->setFilename(Descriptor::getTestFileName($test));
+            $test->getMetadata()->setDependencies($dependencies);
+            $test->getMetadata()->setEnv(Annotation::forMethod($test, $methodName)->fetchAll('env'));
         }
     }
 }

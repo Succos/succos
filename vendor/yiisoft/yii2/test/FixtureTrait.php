@@ -37,7 +37,6 @@ trait FixtureTrait
 
     /**
      * Declares the fixtures that are needed by the current test case.
-     *
      * The return value of this method must be an array of fixture configurations. For example,
      *
      * ```php
@@ -126,7 +125,7 @@ trait FixtureTrait
     }
 
     /**
-     * Initialize the fixtures.
+     * Initialize the fixtures
      * @since 2.0.12
      */
     public function initFixtures()

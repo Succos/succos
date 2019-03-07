@@ -1,20 +1,22 @@
 <?php
+
 use app\models\AdminPermission;
+
+/**
+ * Created by IntelliJ IDEA.
+ * User: luwei
+ * Date: 2017/6/19
+ * Time: 16:52
+ * @var \yii\web\View $this
+ * @var \app\models\Admin $admin
+ */
 $urlManager = Yii::$app->urlManager;
 $this->params['active_nav_group'] = isset($this->params['active_nav_group']) ? $this->params['active_nav_group'] : 0;
-$version ='1.36.3';
+//$version = $this->context->getVersion();
 
 $admin = null;
 $admin_permission_list = [];
-if (!Yii::$app->admin->isGuest) {
-    $admin = Yii::$app->admin->identity;
-    $admin_permission_list = json_decode($admin->permission, true);
-    if (!$admin_permission_list)
-        $admin_permission_list = [];
-} else {
-    $admin = true;
-    $admin_permission_list = $this->context->we7_user_auth;
-}
+
 
 $current_url = Yii::$app->request->absoluteUrl;
 $key = 'addons/';
@@ -27,7 +29,7 @@ $we7_url = mb_substr($current_url, 0, stripos($current_url, $key));
     <meta name="renderer" content="webkit">
     <meta http-equiv="X-UA-Compatible" content="IE=Edge">
     <meta name="viewport" content="width=device-width, initial-scale=1, user-scalable=0">
-    <title>甘尔抓取测试</title>
+    <title><?= $this->title ?></title>
     <link href="//at.alicdn.com/t/font_353057_lxz6kujlw4mfgvi.css" rel="stylesheet">
     <link href="<?= Yii::$app->request->baseUrl ?>/statics/mch/css/bootstrap.min.css" rel="stylesheet">
     <link href="<?= Yii::$app->request->baseUrl ?>/statics/mch/css/jquery.datetimepicker.min.css" rel="stylesheet">
@@ -76,44 +78,60 @@ $we7_url = mb_substr($current_url, 0, stripos($current_url, $key));
     </div>
 </div>
 <?php
-$menu_list=$this->context->getMenuList();
-$route=Yii::$app->requestedRoute;
-use yii\helpers\VarDumper;
-$current_menu=getCurrentMenu($menu_list, $route);
-VarDumper::dump($current_menu);
-
-function activeMenu($item,$route){
-    if ($item['route']==$route){
+$menu_list = $this->context->getMenuList();
+$route = Yii::$app->requestedRoute;
+$current_menu = getCurrentMenu($menu_list, $route);
+function activeMenu($item, $route)
+{
+    if (isset($item['route']) && ($item['route'] == $route || (is_array($item['sub']) && in_array($route, $item['sub']))))
         return 'active';
+    if (isset($item['list']) && is_array($item['list'])) {
+        foreach ($item['list'] as $sub_item) {
+            $active = activeMenu($sub_item, $route);
+            if ($active != '')
+                return $active;
+        }
     }
+    return '';
 }
 
-function getCurrentMenu($menu_list,$route){
-        foreach ($menu_list as $k=>$item){
-            if ($item['route']==$route){
-                return $item;
+function getCurrentMenu($menu_list, $route)
+{
+    foreach ($menu_list as $item) {
+        if (isset($item['route']) && ($item['route'] == $route || (is_array($item['sub']) && in_array($route, $item['sub'])))) {
+            return $item;
+        }
+        if (isset($item['list']) && is_array($item['list'])) {
+            foreach ($item['list'] as $sub_item) {
+                if (isset($sub_item['route']) && ($sub_item['route'] == $route || (is_array($sub_item['sub']) && in_array($route, $sub_item['sub']))))
+                    return $item;
+                if (isset($sub_item['list']) && is_array($sub_item['list'])) {
+                    foreach ($sub_item['list'] as $sub_sub_item) {
+                        if (isset($sub_sub_item['route']) && ($sub_sub_item['route'] == $route || (is_array($sub_sub_item['sub']) && in_array($route, $sub_sub_item['sub']))))
+                            return $item;
+                    }
+                }
             }
         }
-};
+    }
+    return null;
+}
+
 ?>
-<div class="sidebar">
+<div class="sidebar <?= $current_menu && count($current_menu['list']) ? 'sidebar-sub' : null ?>">
     <div class="sidebar-1">
         <div class="logo">
             <a class="home-link"
                href="<?= $urlManager->createUrl(['mch/default/index']) ?>"><?= $this->context->store->name ?></a>
         </div>
         <div>
-            <a class="nav-item " href="/web/index.php?r=mch%2Fstore%2Fpapa">
-                <span class="nav-icon iconfont icon-setup"></span>
-                <span>乐刷</span>
-            </a>
-            <?php foreach ($menu_list as $item ): ?>
-            <a class="nav-item <?=activeMenu($item,$route) ?>" href="<?=$urlManager->createUrl($item['route'])?>">
-                <span class="nav-icon iconfont <?=$item['icon']?>"></span>
-                <span><?=$item['name']?></span>
-            </a>
-           <?php endforeach;?>
-
+            <?php foreach ($menu_list as $item): ?>
+                <a class="nav-item <?= activeMenu($item, $route) ?>"
+                   href="<?= $urlManager->createUrl($item['route']) ?>">
+                    <span class="nav-icon iconfont <?= $item['icon'] ?>"></span>
+                    <span><?= $item['name'] ?></span>
+                </a>
+            <?php endforeach; ?>
         </div>
     </div>
     <?php if ($current_menu && count($current_menu['list'])): ?>

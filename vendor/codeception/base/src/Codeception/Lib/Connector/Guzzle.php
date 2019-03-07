@@ -1,8 +1,6 @@
 <?php
 namespace Codeception\Lib\Connector;
 
-use Aws\Credentials\Credentials;
-use Aws\Signature\SignatureV4;
 use Codeception\Util\Uri;
 use GuzzleHttp\Exception\RequestException;
 use GuzzleHttp\Message\Response;
@@ -21,8 +19,6 @@ class Guzzle extends Client
     ];
     protected $refreshMaxInterval = 0;
 
-    protected $awsCredentials = null;
-    protected $awsSignature = null;
 
     /** @var \GuzzleHttp\Client */
     protected $client;
@@ -57,7 +53,7 @@ class Guzzle extends Client
      * Sets the request header to the passed value.  The header will be
      * sent along with the next request.
      *
-     * Passing an empty value clears the header, which is the equivalent
+     * Passing an empty value clears the header, which is the equivelant
      * of calling deleteHeader.
      *
      * @param string $name the name of the header
@@ -202,11 +198,7 @@ class Guzzle extends Client
 
         // Let BrowserKit handle redirects
         try {
-            if (null !== $this->awsCredentials) {
-                $response = $this->client->send($this->awsSignature->signRequest($guzzleRequest, $this->awsCredentials));
-            } else {
-                $response = $this->client->send($guzzleRequest);
-            }
+            $response = $this->client->send($guzzleRequest);
         } catch (RequestException $e) {
             if ($e->hasResponse()) {
                 $response = $e->getResponse();
@@ -224,7 +216,7 @@ class Guzzle extends Client
 
         $contentHeaders = ['Content-Length' => true, 'Content-Md5' => true, 'Content-Type' => true];
         foreach ($server as $header => $val) {
-            $header = html_entity_decode(implode('-', array_map('ucfirst', explode('-', strtolower(str_replace('_', '-', $header))))), ENT_NOQUOTES);
+            $header = implode('-', array_map('ucfirst', explode('-', strtolower(str_replace('_', '-', $header)))));
             if (strpos($header, 'Http-') === 0) {
                 $headers[substr($header, 5)] = $val;
             } elseif (isset($contentHeaders[$header])) {
@@ -241,9 +233,9 @@ class Guzzle extends Client
         }
         if ($request->getContent() !== null) {
             return $request->getContent();
+        } else {
+            return $request->getParameters();
         }
-
-        return $request->getParameters();
     }
 
     protected function extractFiles(BrowserKitRequest $request)
@@ -285,11 +277,5 @@ class Guzzle extends Client
     protected function extractCookies(BrowserKitRequest $request)
     {
         return $this->getCookieJar()->allRawValues($request->getUri());
-    }
-
-    public function setAwsAuth($config)
-    {
-        $this->awsCredentials = new Credentials($config['key'], $config['secret']);
-        $this->awsSignature = new SignatureV4($config['service'], $config['region']);
     }
 }

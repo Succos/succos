@@ -10,7 +10,7 @@ class ConditionalAssertion extends Assertion
     {
         try {
             parent::run($container);
-        } catch (\PHPUnit\Framework\AssertionFailedError $e) {
+        } catch (\PHPUnit_Framework_AssertionFailedError $e) {
             throw new ConditionalAssertionFailed($e->getMessage(), $e->getCode(), $e);
         }
     }

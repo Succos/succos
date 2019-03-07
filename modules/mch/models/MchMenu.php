@@ -33,7 +33,7 @@ class MchMenu
                         'list' => [
                             [
                                 'name' => '微信配置',
-                                'route' => 'mch/store/wechat-setting',
+                                'route' => 'www.baidu.com',
                             ],
                             [
                                 'name' => '商城设置',

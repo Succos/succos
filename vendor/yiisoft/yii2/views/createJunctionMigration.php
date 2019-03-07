@@ -1,7 +1,6 @@
 <?php
 /**
- * This view is used by console/controllers/MigrateController.php.
- *
+ * This view is used by console/controllers/MigrateController.php
  * The following variables are available in this view:
  * @since 2.0.7
  * @deprecated since 2.0.8
@@ -27,9 +26,9 @@ use yii\db\Migration;
 class <?= $className ?> extends Migration
 {
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function safeUp()
+    public function up()
     {
         $this->createTable('<?= $table ?>', [
             '<?= $field_first ?>_id' => $this->integer(),
@@ -69,9 +68,9 @@ class <?= $className ?> extends Migration
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    public function safeDown()
+    public function down()
     {
         $this->dropTable('<?= $table ?>');
     }

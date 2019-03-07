@@ -10,6 +10,7 @@ use yii\grid\GridView;
 use yii\helpers\Html;
 
 $this->title = 'Yii Debugger';
+
 ?>
 <div class="default-index">
     <div id="yii-debug-toolbar" class="yii-debug-toolbar yii-debug-toolbar_position_top" style="display: none;">
@@ -29,7 +30,9 @@ $this->title = 'Yii Debugger';
         <div class="row">
 <?php
 
-    echo '			<h1>Available Debug Data</h1>';
+if (isset($this->context->module->panels['db']) && isset($this->context->module->panels['request'])) {
+
+    echo "			<h1>Available Debug Data</h1>";
 
     $codes = [];
     foreach ($manifest as $tag => $vals) {
@@ -40,23 +43,19 @@ $this->title = 'Yii Debugger';
     $codes = array_unique($codes, SORT_NUMERIC);
     $statusCodes = !empty($codes) ? array_combine($codes, $codes) : null;
 
-    $hasDbPanel = isset($panels['db']);
-
     echo GridView::widget([
         'dataProvider' => $dataProvider,
         'filterModel' => $searchModel,
-        'rowOptions' => function ($model) use ($searchModel, $hasDbPanel) {
-            if ($searchModel->isCodeCritical($model['statusCode'])) {
-                return ['class'=>'danger'];
-            }
+        'rowOptions' => function ($model, $key, $index, $grid) use ($searchModel) {
+            $dbPanel = $this->context->module->panels['db'];
 
-            if ($hasDbPanel && $this->context->module->panels['db']->isQueryCountCritical($model['sqlCount'])) {
+            if ($searchModel->isCodeCritical($model['statusCode']) || $dbPanel->isQueryCountCritical($model['sqlCount'])) {
                 return ['class'=>'danger'];
+            } else {
+                return [];
             }
-
-            return [];
         },
-        'columns' => array_filter([
+        'columns' => [
             ['class' => 'yii\grid\SerialColumn'],
             [
                 'attribute' => 'tag',
@@ -73,24 +72,26 @@ $this->title = 'Yii Debugger';
                 'format' => 'html',
             ],
             'ip',
-            $hasDbPanel ? [
+            [
                 'attribute' => 'sqlCount',
                 'label' => 'Query Count',
                 'value' => function ($data) {
                     $dbPanel = $this->context->module->panels['db'];
 
                     if ($dbPanel->isQueryCountCritical($data['sqlCount'])) {
+
                         $content = Html::tag('b', $data['sqlCount']) . ' ' . Html::tag('span', '', ['class' => 'glyphicon glyphicon-exclamation-sign']);
 
                         return Html::a($content, ['view', 'panel' => 'db', 'tag' => $data['tag']], [
                             'title' => 'Too many queries. Allowed count is ' . $dbPanel->criticalQueryThreshold,
                         ]);
 
+                    } else {
+                        return $data['sqlCount'];
                     }
-                    return $data['sqlCount'];
                 },
                 'format' => 'html',
-            ] : null,
+            ],
             [
                 'attribute' => 'mailCount',
                 'visible' => isset($this->context->module->panels['mail']),
@@ -130,8 +131,13 @@ $this->title = 'Yii Debugger';
                 'filter' => $statusCodes,
                 'label' => 'Status code'
             ],
-        ]),
+        ],
     ]);
+
+} else {
+    echo "<div class='alert alert-warning'>No data available. Panel <code>db</code> or <code>request</code> not found.</div>";
+}
+
 ?>
         </div>
     </div>

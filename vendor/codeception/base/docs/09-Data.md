@@ -26,12 +26,13 @@ modules:
             password:
 ```
 
+
 <div class="alert alert-notice">
 Use <a href="http://codeception.com/docs/06-ModulesAndHelpers#Dynamic-Configuration-With-Params">module parameters</a>
 to set the database credentials from environment variables or from application configuration files.
 </div>
 
-Db module can cleanup database between tests by loading a database dump. This can be done by parsing SQL file and
+Db module can cleanup database between tests by loading a database dump. This can be done by parsing SQL file and 
 executing its commands using current connection
 
 ```yaml
@@ -44,12 +45,12 @@ modules:
             dump: tests/_data/your-dump-name.sql
             cleanup: true # reload dump between tests
             populate: true # load dump before all tests
-
+            
 ```
 
  Alternatively an external tool (like mysql client, or pg_restore) can be used. This approach is faster and won't produce parsing errors while loading a dump.
  Use `populator` config option to specify the command. For MySQL it can look like this:
-
+ 
 ```yaml
  modules:
     enabled:
@@ -62,7 +63,7 @@ modules:
           populator: 'mysql -u $user $dbname < tests/_data/dump.sql'
 ```
 
-See the [Db module reference](http://codeception.com/docs/modules/Db#SQL-data-dump) for more examples.
+See the []Db module reference](http://codeception.com/docs/modules/Db#SQL-data-dump) for more examples.
 
 To ensure database dump is loaded before all tests add `populate: true`. To clean current database and reload dump between tests use `cleanup: true`.
 
@@ -196,6 +197,7 @@ modules:
         - Db
 ```
 
+
 ### DataMapper
 
 Doctrine is also a popular ORM, unlike some others it implements the DataMapper pattern and is not bound to any framework.
@@ -217,6 +219,7 @@ modules:
         - Doctrine2:
             depends: ZF2
 ```
+
 
 If no framework is used with Doctrine you should provide the `connection_callback` option
 with a valid callback to a function which returns an `EntityManager` instance.

@@ -10,7 +10,7 @@ use Symfony\Component\Console\Output\OutputInterface;
 
 /**
  * Generates code snippets for matched feature files in a suite.
- * Code snippets are expected to be implemented in Actor or PageObjects
+ * Code snuppets are expected to be implemtned in Actor or PageOjects
  *
  * Usage:
  *

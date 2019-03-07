@@ -5,7 +5,6 @@
 /* @var $position string */
 
 use yii\helpers\Url;
-use yii\helpers\Html;
 
 $firstPanel = reset($panels);
 $url = $firstPanel->getUrl();
@@ -38,13 +37,7 @@ $url = $firstPanel->getUrl();
         </div>
 
         <?php foreach ($panels as $panel): ?>
-            <?php if ($panel->hasError()): ?>
-                <div class="yii-debug-toolbar__block">
-                    <a href="<?= $panel->getUrl() ?>" title="<?= Html::encode($panel->getError()->getMessage()); ?>"><?=Html::encode($panel->getName())?> <span class="yii-debug-toolbar__label yii-debug-toolbar__label_error">error</span></a>
-                </div>
-            <?php else: ?>
-                <?= $panel->getSummary() ?>
-            <?php endif; ?>
+            <?= $panel->getSummary() ?>
         <?php endforeach; ?>
 
         <div class="yii-debug-toolbar__block_last">

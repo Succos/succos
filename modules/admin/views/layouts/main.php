@@ -1,5 +1,6 @@
 <?php
 
+
 use app\models\Option;
 
 $version = '1.8.3';
@@ -8,9 +9,12 @@ $active_nav_link = isset($this->params['active_nav_link']) ? $this->params['acti
 
 $logo = Option::get('logo', 0, 'admin', null);
 $logo = $logo ? $logo : Yii::$app->request->baseUrl . '/statics/admin/images/logo.png';
+
 $copyright = Option::get('copyright', 0, 'admin');
 $copyright = $copyright ? $copyright : '©2017 <a href="http://www.zjhejiang.com" target="_blank">禾匠信息科技</a>';
+
 ?>
+<?php $this->beginPage();?>
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -195,7 +199,6 @@ $copyright = $copyright ? $copyright : '©2017 <a href="http://www.zjhejiang.com
             return false;
         }
         error.hide();
-        console.log($(".alter-password-form").serialize());
         btn.btnLoading();
         $.ajax({
             url: "<?=$url_manager->createUrl(['admin/default/alter-password'])?>",
@@ -221,3 +224,4 @@ $copyright = $copyright ? $copyright : '©2017 <a href="http://www.zjhejiang.com
 </script>
 </body>
 </html>
+<?php $this->endPage() ?>

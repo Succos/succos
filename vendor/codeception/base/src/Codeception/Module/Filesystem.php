@@ -95,7 +95,7 @@ class Filesystem extends CodeceptionModule
     public function deleteFile($filename)
     {
         if (!file_exists($this->absolutizePath($filename))) {
-            \PHPUnit\Framework\Assert::fail('file not found');
+            \PHPUnit_Framework_Assert::fail('file not found');
         }
         unlink($this->absolutizePath($filename));
     }
@@ -204,7 +204,7 @@ class Filesystem extends CodeceptionModule
     public function seeFileContentsEqual($text)
     {
         $file = str_replace("\r", '', $this->file);
-        \PHPUnit\Framework\Assert::assertEquals($text, $file);
+        \PHPUnit_Framework_Assert::assertEquals($text, $file);
     }
 
     /**
@@ -249,7 +249,7 @@ class Filesystem extends CodeceptionModule
     {
         if ($path === '' && file_exists($filename)) {
             $this->openFile($filename);
-            \PHPUnit\Framework\Assert::assertFileExists($filename);
+            \PHPUnit_Framework_Assert::assertFileExists($filename);
             return;
         }
 
@@ -260,7 +260,7 @@ class Filesystem extends CodeceptionModule
         }
 
         $this->openFile($found);
-        \PHPUnit\Framework\Assert::assertFileExists($found);
+        \PHPUnit_Framework_Assert::assertFileExists($found);
     }
 
     /**
@@ -272,7 +272,7 @@ class Filesystem extends CodeceptionModule
     public function dontSeeFileFound($filename, $path = '')
     {
         if ($path === '') {
-            \PHPUnit\Framework\Assert::assertFileNotExists($filename);
+            \PHPUnit_Framework_Assert::assertFileNotExists($filename);
             return;
         }
 
@@ -280,11 +280,11 @@ class Filesystem extends CodeceptionModule
 
         if ($found === false) {
             //this line keeps a count of assertions correct
-            \PHPUnit\Framework\Assert::assertTrue(true);
+            \PHPUnit_Framework_Assert::assertTrue(true);
             return;
         }
 
-        \PHPUnit\Framework\Assert::assertFileNotExists($found);
+        \PHPUnit_Framework_Assert::assertFileNotExists($found);
     }
 
     /**
@@ -292,7 +292,7 @@ class Filesystem extends CodeceptionModule
      *
      * @param string $filename
      * @param string $path
-     * @throws \PHPUnit\Framework\AssertionFailedError When path does not exist
+     * @throws \PHPUnit_Framework_AssertionFailedError When path does not exist
      * @return string|false Path to the first matching file
      */
     private function findFileInPath($filename, $path)

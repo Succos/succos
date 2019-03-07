@@ -32,10 +32,26 @@ class DiffFactoryTest extends \Codeception\Test\Unit
      */
     protected function createFailure()
     {
-        $expected = "a\nb";
-        $actual = "a\nc";
+        $expectedXml = <<<XML
+<note>
+    <to>Tove</to>
+    <from>Jani</from>
+    <heading>Reminder</heading>
+    <body>Don't forget me this weekend!</body>
+</note>
+XML;
 
-        return new ComparisonFailure($expected, $actual, $expected, $actual);
+        $actualXml = <<<XML
+<note>
+    <to>Tove</to>
+    <from>Jani</from>
+    <heading>Reminder
+    </heading>
+    <body>Don't forget me this weekend!</body>
+</note>
+XML;
+
+        return new ComparisonFailure($expectedXml, $actualXml, $expectedXml, $actualXml);
     }
 
     /**
@@ -45,10 +61,16 @@ class DiffFactoryTest extends \Codeception\Test\Unit
     {
         $expectedDiff = <<<TXT
 @@ @@
- a
--b
-+c
+ <note>
+     <to>Tove</to>
+     <from>Jani</from>
+-    <heading>Reminder</heading>
++    <heading>Reminder
++    </heading>
+     <body>Don't forget me this weekend!</body>
+ </note>
 TXT;
+
         return $expectedDiff . "\n";
     }
 }

@@ -37,7 +37,7 @@ trait SchemaBuilderTrait
     /**
      * @return Connection the database connection to be used for schema building.
      */
-    abstract protected function getDb();
+    protected abstract function getDb();
 
     /**
      * Creates a primary key column.
@@ -95,18 +95,6 @@ trait SchemaBuilderTrait
     public function text()
     {
         return $this->getDb()->getSchema()->createColumnSchemaBuilder(Schema::TYPE_TEXT);
-    }
-
-    /**
-     * Creates a tinyint column. If tinyint is not supported by the DBMS, smallint will be used.
-     * @param int $length column size or precision definition.
-     * This parameter will be ignored if not supported by the DBMS.
-     * @return ColumnSchemaBuilder the column instance which can be further customized.
-     * @since 2.0.14
-     */
-    public function tinyInteger($length = null)
-    {
-        return $this->getDb()->getSchema()->createColumnSchemaBuilder(Schema::TYPE_TINYINT, $length);
     }
 
     /**
@@ -189,7 +177,6 @@ trait SchemaBuilderTrait
         if ($scale !== null) {
             $length[] = $scale;
         }
-
         return $this->getDb()->getSchema()->createColumnSchemaBuilder(Schema::TYPE_DECIMAL, $length);
     }
 
@@ -281,28 +268,6 @@ trait SchemaBuilderTrait
         if ($scale !== null) {
             $length[] = $scale;
         }
-
         return $this->getDb()->getSchema()->createColumnSchemaBuilder(Schema::TYPE_MONEY, $length);
-    }
-
-    /**
-     * Creates a JSON column.
-     * @return ColumnSchemaBuilder the column instance which can be further customized.
-     * @since 2.0.14
-     * @throws \yii\base\Exception
-     */
-    public function json()
-    {
-        /*
-         * TODO Remove in Yii 2.1
-         *
-         * Disabled due to bug in MySQL extension
-         * @link https://bugs.php.net/bug.php?id=70384
-         */
-        if (version_compare(PHP_VERSION, '5.6', '<') && $this->getDb()->getDriverName() === 'mysql') {
-            throw new \yii\base\Exception('JSON column type is not supported in PHP < 5.6');
-        }
-
-        return $this->getDb()->getSchema()->createColumnSchemaBuilder(Schema::TYPE_JSON);
     }
 }

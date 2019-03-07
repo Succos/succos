@@ -1,6 +1,6 @@
 <?php
 
-class ModuleConfigTest extends \PHPUnit\Framework\TestCase
+class ModuleConfigTest extends \PHPUnit_Framework_TestCase
 {
     // tests
     public function testCanBeCreatedForModuleName()

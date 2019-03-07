@@ -22,9 +22,8 @@ use yii\web\Controller;
  * @property array $columnNames Model column names. This property is read-only.
  * @property string $controllerID The controller ID (without the module ID prefix). This property is
  * read-only.
- * @property string $nameAttribute This property is read-only.
  * @property array $searchAttributes Searchable attributes. This property is read-only.
- * @property bool|\yii\db\TableSchema $tableSchema This property is read-only.
+ * @property boolean|\yii\db\TableSchema $tableSchema This property is read-only.
  * @property string $viewPath The controller view path. This property is read-only.
  *
  * @author Qiang Xue <qiang.xue@gmail.com>
@@ -39,7 +38,7 @@ class Generator extends \yii\gii\Generator
     public $indexWidgetType = 'grid';
     public $searchModelClass = '';
     /**
-     * @var bool whether to wrap the `GridView` or `ListView` widget with the `yii\widgets\Pjax` widget
+     * @var boolean whether to wrap the `GridView` or `ListView` widget with the `yii\widgets\Pjax` widget
      * @since 2.0.5
      */
     public $enablePjax = false;
@@ -205,14 +204,11 @@ class Generator extends \yii\gii\Generator
     {
         if (empty($this->viewPath)) {
             return Yii::getAlias('@app/views/' . $this->getControllerID());
+        } else {
+            return Yii::getAlias($this->viewPath);
         }
-
-        return Yii::getAlias(str_replace('\\', '/', $this->viewPath));
     }
 
-    /**
-     * @return string
-     */
     public function getNameAttribute()
     {
         foreach ($this->getColumnNames() as $name) {
@@ -238,39 +234,34 @@ class Generator extends \yii\gii\Generator
         if ($tableSchema === false || !isset($tableSchema->columns[$attribute])) {
             if (preg_match('/^(password|pass|passwd|passcode)$/i', $attribute)) {
                 return "\$form->field(\$model, '$attribute')->passwordInput()";
+            } else {
+                return "\$form->field(\$model, '$attribute')";
             }
-
-            return "\$form->field(\$model, '$attribute')";
         }
         $column = $tableSchema->columns[$attribute];
         if ($column->phpType === 'boolean') {
             return "\$form->field(\$model, '$attribute')->checkbox()";
-        }
-
-        if ($column->type === 'text') {
+        } elseif ($column->type === 'text') {
             return "\$form->field(\$model, '$attribute')->textarea(['rows' => 6])";
-        }
-
-        if (preg_match('/^(password|pass|passwd|passcode)$/i', $column->name)) {
-            $input = 'passwordInput';
         } else {
-            $input = 'textInput';
-        }
-
-        if (is_array($column->enumValues) && count($column->enumValues) > 0) {
-            $dropDownOptions = [];
-            foreach ($column->enumValues as $enumValue) {
-                $dropDownOptions[$enumValue] = Inflector::humanize($enumValue);
+            if (preg_match('/^(password|pass|passwd|passcode)$/i', $column->name)) {
+                $input = 'passwordInput';
+            } else {
+                $input = 'textInput';
             }
-            return "\$form->field(\$model, '$attribute')->dropDownList("
-                . preg_replace("/\n\s*/", ' ', VarDumper::export($dropDownOptions)).", ['prompt' => ''])";
+            if (is_array($column->enumValues) && count($column->enumValues) > 0) {
+                $dropDownOptions = [];
+                foreach ($column->enumValues as $enumValue) {
+                    $dropDownOptions[$enumValue] = Inflector::humanize($enumValue);
+                }
+                return "\$form->field(\$model, '$attribute')->dropDownList("
+                    . preg_replace("/\n\s*/", ' ', VarDumper::export($dropDownOptions)).", ['prompt' => ''])";
+            } elseif ($column->phpType !== 'string' || $column->size === null) {
+                return "\$form->field(\$model, '$attribute')->$input()";
+            } else {
+                return "\$form->field(\$model, '$attribute')->$input(['maxlength' => true])";
+            }
         }
-
-        if ($column->phpType !== 'string' || $column->size === null) {
-            return "\$form->field(\$model, '$attribute')->$input()";
-        }
-
-        return "\$form->field(\$model, '$attribute')->$input(['maxlength' => true])";
     }
 
     /**
@@ -284,13 +275,12 @@ class Generator extends \yii\gii\Generator
         if ($tableSchema === false) {
             return "\$form->field(\$model, '$attribute')";
         }
-
         $column = $tableSchema->columns[$attribute];
         if ($column->phpType === 'boolean') {
             return "\$form->field(\$model, '$attribute')->checkbox()";
+        } else {
+            return "\$form->field(\$model, '$attribute')";
         }
-
-        return "\$form->field(\$model, '$attribute')";
     }
 
     /**
@@ -302,25 +292,17 @@ class Generator extends \yii\gii\Generator
     {
         if ($column->phpType === 'boolean') {
             return 'boolean';
-        }
-
-        if ($column->type === 'text') {
+        } elseif ($column->type === 'text') {
             return 'ntext';
-        }
-
-        if (stripos($column->name, 'time') !== false && $column->phpType === 'integer') {
+        } elseif (stripos($column->name, 'time') !== false && $column->phpType === 'integer') {
             return 'datetime';
-        }
-
-        if (stripos($column->name, 'email') !== false) {
+        } elseif (stripos($column->name, 'email') !== false) {
             return 'email';
-        }
-
-        if (preg_match('/(\b|[_-])url(\b|[_-])/i', $column->name)) {
+        } elseif (stripos($column->name, 'url') !== false) {
             return 'url';
+        } else {
+            return 'text';
         }
-
-        return 'text';
     }
 
     /**
@@ -443,8 +425,7 @@ class Generator extends \yii\gii\Generator
                     $hashConditions[] = "'{$column}' => \$this->{$column},";
                     break;
                 default:
-                    $likeKeyword = $this->getClassDbDriverName() === 'pgsql' ? 'ilike' : 'like';
-                    $likeConditions[] = "->andFilterWhere(['{$likeKeyword}', '{$column}', \$this->{$column}])";                    
+                    $likeConditions[] = "->andFilterWhere(['like', '{$column}', \$this->{$column}])";
                     break;
             }
         }
@@ -474,21 +455,21 @@ class Generator extends \yii\gii\Generator
         if (count($pks) === 1) {
             if (is_subclass_of($class, 'yii\mongodb\ActiveRecord')) {
                 return "'id' => (string)\$model->{$pks[0]}";
-            }
-
-            return "'id' => \$model->{$pks[0]}";
-        }
-
-        $params = [];
-        foreach ($pks as $pk) {
-            if (is_subclass_of($class, 'yii\mongodb\ActiveRecord')) {
-                $params[] = "'$pk' => (string)\$model->$pk";
             } else {
-                $params[] = "'$pk' => \$model->$pk";
+                return "'id' => \$model->{$pks[0]}";
             }
-        }
+        } else {
+            $params = [];
+            foreach ($pks as $pk) {
+                if (is_subclass_of($class, 'yii\mongodb\ActiveRecord')) {
+                    $params[] = "'$pk' => (string)\$model->$pk";
+                } else {
+                    $params[] = "'$pk' => \$model->$pk";
+                }
+            }
 
-        return implode(', ', $params);
+            return implode(', ', $params);
+        }
     }
 
     /**
@@ -502,9 +483,9 @@ class Generator extends \yii\gii\Generator
         $pks = $class::primaryKey();
         if (count($pks) === 1) {
             return '$id';
+        } else {
+            return '$' . implode(', $', $pks);
         }
-
-        return '$' . implode(', $', $pks);
     }
 
     /**
@@ -519,26 +500,26 @@ class Generator extends \yii\gii\Generator
         if (($table = $this->getTableSchema()) === false) {
             $params = [];
             foreach ($pks as $pk) {
-                $params[] = '@param ' . (strtolower(substr($pk, -2)) === 'id' ? 'integer' : 'string') . ' $' . $pk;
+                $params[] = '@param ' . (substr(strtolower($pk), -2) == 'id' ? 'integer' : 'string') . ' $' . $pk;
             }
 
             return $params;
         }
         if (count($pks) === 1) {
             return ['@param ' . $table->columns[$pks[0]]->phpType . ' $id'];
-        }
+        } else {
+            $params = [];
+            foreach ($pks as $pk) {
+                $params[] = '@param ' . $table->columns[$pk]->phpType . ' $' . $pk;
+            }
 
-        $params = [];
-        foreach ($pks as $pk) {
-            $params[] = '@param ' . $table->columns[$pk]->phpType . ' $' . $pk;
+            return $params;
         }
-
-        return $params;
     }
 
     /**
      * Returns table schema for current model class or false if it is not an active record
-     * @return bool|\yii\db\TableSchema
+     * @return boolean|\yii\db\TableSchema
      */
     public function getTableSchema()
     {
@@ -560,24 +541,11 @@ class Generator extends \yii\gii\Generator
         $class = $this->modelClass;
         if (is_subclass_of($class, 'yii\db\ActiveRecord')) {
             return $class::getTableSchema()->getColumnNames();
+        } else {
+            /* @var $model \yii\base\Model */
+            $model = new $class();
+
+            return $model->attributes();
         }
-
-        /* @var $model \yii\base\Model */
-        $model = new $class();
-
-        return $model->attributes();
-    }
-
-    /**
-     * @return string|null driver name of modelClass db connection.
-     * In case db is not instance of \yii\db\Connection null will be returned.
-     * @since 2.0.6
-     */
-    protected function getClassDbDriverName()
-    {
-        /* @var $class ActiveRecord */
-        $class = $this->modelClass;
-        $db = $class::getDb();
-        return $db instanceof \yii\db\Connection ? $db->driverName : null;
     }
 }

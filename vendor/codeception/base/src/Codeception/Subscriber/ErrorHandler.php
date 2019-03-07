@@ -11,8 +11,7 @@ class ErrorHandler implements EventSubscriberInterface
     use Shared\StaticEvents;
 
     public static $events = [
-        Events::SUITE_BEFORE => 'handle',
-        Events::SUITE_AFTER  => 'onFinish'
+        Events::SUITE_BEFORE => 'handle'
     ];
 
     /**
@@ -28,8 +27,6 @@ class ErrorHandler implements EventSubscriberInterface
     private $deprecationsInstalled = false;
     private $oldHandler;
 
-    private $suiteFinished = false;
-
     /**
      * @var int stores bitmask for errors
      */
@@ -38,11 +35,6 @@ class ErrorHandler implements EventSubscriberInterface
     public function __construct()
     {
         $this->errorLevel = E_ALL & ~E_STRICT & ~E_DEPRECATED;
-    }
-
-    public function onFinish(SuiteEvent $e)
-    {
-        $this->suiteFinished = true;
     }
 
     public function handle(SuiteEvent $e)
@@ -64,7 +56,7 @@ class ErrorHandler implements EventSubscriberInterface
         $this->initialized = true;
     }
 
-    public function errorHandler($errno, $errstr, $errfile, $errline, $context = array())
+    public function errorHandler($errno, $errstr, $errfile, $errline, $context)
     {
         if (E_USER_DEPRECATED === $errno) {
             $this->handleDeprecationError($errno, $errstr, $errfile, $errline, $context);
@@ -80,7 +72,7 @@ class ErrorHandler implements EventSubscriberInterface
             return false;
         }
 
-        throw new \PHPUnit\Framework\Exception($errstr, $errno);
+        throw new \PHPUnit_Framework_Exception($errstr, $errno);
     }
 
     public function shutdownHandler()
@@ -94,12 +86,7 @@ class ErrorHandler implements EventSubscriberInterface
         }
         $this->stopped = true;
         $error = error_get_last();
-
-        if (!$this->suiteFinished && (
-            $error === null || !in_array($error['type'], [E_ERROR, E_COMPILE_ERROR, E_CORE_ERROR])
-        )) {
-            throw new \RuntimeException('Command Did Not Finish Properly');
-        } elseif (!is_array($error)) {
+        if (!is_array($error)) {
             return;
         }
         if (error_reporting() === 0) {
@@ -116,8 +103,8 @@ class ErrorHandler implements EventSubscriberInterface
 
     private function registerDeprecationErrorHandler()
     {
-        if (class_exists('\Symfony\Bridge\PhpUnit\DeprecationErrorHandler') && 'disabled' !== getenv('SYMFONY_DEPRECATIONS_HELPER')) {
-            // DeprecationErrorHandler only will be installed if array('PHPUnit\Util\ErrorHandler', 'handleError')
+        if (class_exists('\Symfony\Bridge\PhpUnit\DeprecationErrorHandler')) {
+            // DeprecationErrorHandler only will be installed if array('PHPUnit_Util_ErrorHandler', 'handleError')
             // is installed or no other error handlers are installed.
             // So we will remove Symfony\Component\Debug\ErrorHandler if it's installed.
             $old = set_error_handler('var_dump');

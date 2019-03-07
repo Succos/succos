@@ -5,11 +5,10 @@
     "type": "yii2-extension",
     "license": "BSD-3-Clause",
     "support": {
-        "issues": "https://github.com/yiisoft/yii2-faker/issues",
         "forum": "http://www.yiiframework.com/forum/",
         "wiki": "http://www.yiiframework.com/wiki/",
         "irc": "irc://irc.freenode.net/yii",
-        "source": "https://github.com/yiisoft/yii2-faker"
+        "source": "https://github.com/yiisoft/yii2"
     },
     "authors": [
         {
@@ -18,8 +17,8 @@
         }
     ],
     "require": {
-        "yiisoft/yii2": "~2.0.0",
-        "fzaninotto/faker": "~1.4"
+        "yiisoft/yii2": "*",
+        "fzaninotto/faker": "*"
     },
     "autoload": {
         "psr-4": { "yii\\faker\\": "" }
@@ -28,11 +27,5 @@
         "branch-alias": {
             "dev-master": "2.0.x-dev"
         }
-    },
-    "repositories": [
-        {
-            "type": "composer",
-            "url": "https://asset-packagist.org"
-        }
-    ]
+    }
 }

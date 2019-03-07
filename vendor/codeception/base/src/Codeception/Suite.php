@@ -4,7 +4,7 @@ namespace Codeception;
 use Codeception\Test\Descriptor;
 use Codeception\Test\Interfaces\Dependent;
 
-class Suite extends \PHPUnit\Framework\TestSuite
+class Suite extends \PHPUnit_Framework_TestSuite
 {
     protected $modules;
     protected $baseName;
@@ -27,7 +27,6 @@ class Suite extends \PHPUnit\Framework\TestSuite
         }
         $this->tests = $queue;
     }
-
     protected function getDependencies($test)
     {
         if (!$test instanceof Dependent) {
@@ -44,7 +43,6 @@ class Suite extends \PHPUnit\Framework\TestSuite
         $tests[] = $test;
         return $tests;
     }
-
     protected function findMatchedTest($testSignature)
     {
         foreach ($this->tests as $test) {
@@ -52,6 +50,9 @@ class Suite extends \PHPUnit\Framework\TestSuite
             if ($signature === $testSignature) {
                 return $test;
             }
+        }
+        if ($test instanceof TestInterface) {
+            $test->getMetadata()->setSkip("Dependent test for $testSignature not found");
         }
     }
 

@@ -1,11 +1,16 @@
 <?php
+/**
+ * Created by IntelliJ IDEA.
+ * User: luwei
+ * Date: 2017/10/2
+ * Time: 13:52
+ */
 
 namespace app\modules\admin\controllers;
 
 
 use app\modules\admin\models\LoginForm;
-use app\modules\admin\controllers\Controller;
-use Yii;
+use yii\helpers\VarDumper;
 
 class PassportController extends Controller
 {
@@ -21,15 +26,15 @@ class PassportController extends Controller
         if (\Yii::$app->request->isPost) {
             $form = new LoginForm();
             $form->attributes = \Yii::$app->request->post();
-            $this->renderJson($form->login());
+         return $this->renderJson($form->login());
         } else {
             return $this->render('login');
         }
     }
-    public function actionLogout(){
+
+    public function actionLogout()
+    {
         \Yii::$app->admin->logout();
         \Yii::$app->response->redirect(\Yii::$app->urlManager->createUrl(['admin']))->send();
-
     }
-
 }

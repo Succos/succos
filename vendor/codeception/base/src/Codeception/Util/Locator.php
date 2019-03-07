@@ -198,9 +198,9 @@ class Locator
      *
      * ```php
      * <?php
-     * Locator::isXPath('#user .hello') => false
-     * Locator::isXPath('body') => false
-     * Locator::isXPath('//body/p/user') => true
+     * Locator::isCSS('#user .hello') => false
+     * Locator::isCSS('body') => false
+     * Locator::isCSS('//body/p/user') => true
      * ```
      *
      * @param $locator
@@ -215,35 +215,7 @@ class Locator
     }
 
     /**
-     * @param $locator
-     * @return bool
-     */
-    public static function isPrecise($locator)
-    {
-        if (is_array($locator)) {
-            return true;
-        }
-        if ($locator instanceof WebDriverBy) {
-            return true;
-        }
-        if (Locator::isID($locator)) {
-            return true;
-        }
-        if (strpos($locator, '//') === 0) {
-            return true; // simple xpath check
-        }
-        return false;
-    }
-
-    /**
      * Checks that a string is valid CSS ID
-     *
-     * ```php
-     * <?php
-     * Locator::isID('#user') => true
-     * Locator::isID('body') => false
-     * Locator::isID('//body/p/user') => false
-     * ```
      *
      * @param $id
      *
@@ -256,13 +228,6 @@ class Locator
 
     /**
      * Checks that a string is valid CSS class
-     *
-     * ```php
-     * <?php
-     * Locator::isClass('.hello') => true
-     * Locator::isClass('body') => false
-     * Locator::isClass('//body/p/user') => false
-     * ```
      *
      * @param $class
      * @return bool

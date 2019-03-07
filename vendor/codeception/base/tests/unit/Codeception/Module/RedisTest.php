@@ -94,7 +94,7 @@ class RedisTest extends Unit
     protected function shouldFail($exceptionClass = null)
     {
         if (!$exceptionClass) {
-            $exceptionClass = 'PHPUnit\Framework\AssertionFailedError';
+            $exceptionClass = 'PHPUnit_Framework_AssertionFailedError';
         }
 
         $this->setExpectedException($exceptionClass);

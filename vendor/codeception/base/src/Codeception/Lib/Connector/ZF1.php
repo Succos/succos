@@ -102,7 +102,7 @@ class ZF1 extends Client
      */
     private function formatResponseHeaders(\Zend_Controller_Response_Abstract $response)
     {
-        $headers = [];
+        $headers = array();
         foreach ($response->getHeaders() as $header) {
             $name = $header['name'];
             if (array_key_exists($name, $headers)) {
@@ -130,9 +130,9 @@ class ZF1 extends Client
         $headers = [];
         $server = $request->getServer();
 
-        $contentHeaders = ['Content-Length' => true, 'Content-Md5' => true, 'Content-Type' => true];
+        $contentHeaders = array('Content-Length' => true, 'Content-Md5' => true, 'Content-Type' => true);
         foreach ($server as $header => $val) {
-            $header = html_entity_decode(implode('-', array_map('ucfirst', explode('-', strtolower(str_replace('_', '-', $header))))), ENT_NOQUOTES);
+            $header = implode('-', array_map('ucfirst', explode('-', strtolower(str_replace('_', '-', $header)))));
 
             if (strpos($header, 'Http-') === 0) {
                 $headers[substr($header, 5)] = $val;

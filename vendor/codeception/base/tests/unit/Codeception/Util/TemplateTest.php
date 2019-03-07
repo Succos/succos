@@ -1,7 +1,7 @@
 <?php
 namespace Codeception\Util;
 
-class TemplateTest extends \PHPUnit\Framework\TestCase
+class TemplateTest extends \PHPUnit_Framework_TestCase
 {
     public function testTemplateCanPassValues()
     {

@@ -9,11 +9,10 @@ namespace yii\console\controllers;
 
 use Yii;
 use yii\caching\ApcCache;
-use yii\caching\CacheInterface;
 use yii\console\Controller;
-use yii\console\Exception;
-use yii\console\ExitCode;
+use yii\caching\Cache;
 use yii\helpers\Console;
+use yii\console\Exception;
 
 /**
  * Allows you to flush cache.
@@ -62,13 +61,13 @@ class CacheController extends Controller
 
     /**
      * Flushes given cache components.
-     *
      * For example,
      *
      * ```
      * # flushes caches specified by their id: "first", "second", "third"
      * yii cache/flush first second third
      * ```
+     *
      */
     public function actionFlush()
     {
@@ -90,11 +89,11 @@ class CacheController extends Controller
 
         if (!$foundCaches) {
             $this->notifyNoCachesFound();
-            return ExitCode::OK;
+            return static::EXIT_CODE_NORMAL;
         }
 
         if (!$this->confirmFlush($foundCaches)) {
-            return ExitCode::OK;
+            return static::EXIT_CODE_NORMAL;
         }
 
         foreach ($caches as $name => $class) {
@@ -118,7 +117,7 @@ class CacheController extends Controller
 
         if (empty($caches)) {
             $this->notifyNoCachesFound();
-            return ExitCode::OK;
+            return static::EXIT_CODE_NORMAL;
         }
 
         foreach ($caches as $name => $class) {
@@ -152,14 +151,14 @@ class CacheController extends Controller
         $connection = Yii::$app->get($db, false);
         if ($connection === null) {
             $this->stdout("Unknown component \"$db\".\n", Console::FG_RED);
-            return ExitCode::UNSPECIFIED_ERROR;
+            return self::EXIT_CODE_ERROR;
         }
 
         if (!$connection instanceof \yii\db\Connection) {
             $this->stdout("\"$db\" component doesn't inherit \\yii\\db\\Connection.\n", Console::FG_RED);
-            return ExitCode::UNSPECIFIED_ERROR;
+            return self::EXIT_CODE_ERROR;
         } elseif (!$this->confirm("Flush cache schema for \"$db\" connection?")) {
-            return ExitCode::OK;
+            return static::EXIT_CODE_NORMAL;
         }
 
         try {
@@ -214,6 +213,7 @@ class CacheController extends Controller
     }
 
     /**
+     *
      * @param array $caches
      */
     private function notifyFlushed($caches)
@@ -221,7 +221,7 @@ class CacheController extends Controller
         $this->stdout("The following cache components were processed:\n\n", Console::FG_YELLOW);
 
         foreach ($caches as $cache) {
-            $this->stdout("\t* " . $cache['name'] . ' (' . $cache['class'] . ')', Console::FG_GREEN);
+            $this->stdout("\t* " . $cache['name'] .' (' . $cache['class'] . ')', Console::FG_GREEN);
 
             if (!$cache['is_flushed']) {
                 $this->stdout(" - not flushed\n", Console::FG_RED);
@@ -265,18 +265,12 @@ class CacheController extends Controller
                 continue;
             }
 
-            if ($component instanceof CacheInterface) {
+            if ($component instanceof Cache) {
                 $caches[$name] = get_class($component);
             } elseif (is_array($component) && isset($component['class']) && $this->isCacheClass($component['class'])) {
                 $caches[$name] = $component['class'];
             } elseif (is_string($component) && $this->isCacheClass($component)) {
                 $caches[$name] = $component;
-            } elseif ($component instanceof \Closure) {
-                $cache = Yii::$app->get($name);
-                if ($this->isCacheClass($cache)) {
-                    $cacheClass = get_class($cache);
-                    $caches[$name] = $cacheClass;
-                }
             }
         }
 
@@ -290,16 +284,16 @@ class CacheController extends Controller
      */
     private function isCacheClass($className)
     {
-        return is_subclass_of($className, 'yii\caching\CacheInterface');
+        return is_subclass_of($className, Cache::className());
     }
 
     /**
-     * Checks if cache of a certain class can be flushed.
+     * Checks if cache of a certain class can be flushed
      * @param string $className class name.
      * @return bool
      */
     private function canBeFlushed($className)
     {
-        return !is_a($className, ApcCache::className(), true) || PHP_SAPI !== 'cli';
+        return !is_a($className, ApcCache::className(), true) || php_sapi_name() !== "cli";
     }
 }

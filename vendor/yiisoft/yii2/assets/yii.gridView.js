@@ -205,7 +205,6 @@
                     keys.push($(this).parent().closest('tr').data('key'));
                 });
             }
-
             return keys;
         },
 

@@ -14,9 +14,7 @@
 
 <form action="example5" method="post">
     <input type="text" name="rus" value="Верно"/>
-    <div id="button-container">
-        <input type="submit" value="Relative Form"/>
-    </div>
+    <input type="submit" value="Relative Form"/>
 </form>
 
 </body>

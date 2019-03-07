@@ -7,14 +7,12 @@
 
 namespace yii\db\sqlite;
 
-use yii\base\InvalidArgumentException;
-use yii\base\NotSupportedException;
 use yii\db\Connection;
-use yii\db\Constraint;
+use yii\db\Exception;
+use yii\base\InvalidParamException;
+use yii\base\NotSupportedException;
 use yii\db\Expression;
-use yii\db\ExpressionInterface;
 use yii\db\Query;
-use yii\helpers\StringHelper;
 
 /**
  * QueryBuilder is the query builder for SQLite databases.
@@ -35,7 +33,6 @@ class QueryBuilder extends \yii\db\QueryBuilder
         Schema::TYPE_CHAR => 'char(1)',
         Schema::TYPE_STRING => 'varchar(255)',
         Schema::TYPE_TEXT => 'text',
-        Schema::TYPE_TINYINT => 'tinyint',
         Schema::TYPE_SMALLINT => 'smallint',
         Schema::TYPE_INTEGER => 'integer',
         Schema::TYPE_BIGINT => 'bigint',
@@ -51,67 +48,14 @@ class QueryBuilder extends \yii\db\QueryBuilder
         Schema::TYPE_MONEY => 'decimal(19,4)',
     ];
 
-
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
-    protected function defaultExpressionBuilders()
-    {
-        return array_merge(parent::defaultExpressionBuilders(), [
-            'yii\db\conditions\LikeCondition' => 'yii\db\sqlite\conditions\LikeConditionBuilder',
-            'yii\db\conditions\InCondition' => 'yii\db\sqlite\conditions\InConditionBuilder',
-        ]);
-    }
+    protected $likeEscapeCharacter = '\\';
 
-    /**
-     * {@inheritdoc}
-     * @see https://stackoverflow.com/questions/15277373/sqlite-upsert-update-or-insert/15277374#15277374
-     */
-    public function upsert($table, $insertColumns, $updateColumns, &$params)
-    {
-        /** @var Constraint[] $constraints */
-        list($uniqueNames, $insertNames, $updateNames) = $this->prepareUpsertColumns($table, $insertColumns, $updateColumns, $constraints);
-        if (empty($uniqueNames)) {
-            return $this->insert($table, $insertColumns, $params);
-        }
-
-        list(, $placeholders, $values, $params) = $this->prepareInsertValues($table, $insertColumns, $params);
-        $insertSql = 'INSERT OR IGNORE INTO ' . $this->db->quoteTableName($table)
-            . (!empty($insertNames) ? ' (' . implode(', ', $insertNames) . ')' : '')
-            . (!empty($placeholders) ? ' VALUES (' . implode(', ', $placeholders) . ')' : $values);
-        if ($updateColumns === false) {
-            return $insertSql;
-        }
-
-        $updateCondition = ['or'];
-        $quotedTableName = $this->db->quoteTableName($table);
-        foreach ($constraints as $constraint) {
-            $constraintCondition = ['and'];
-            foreach ($constraint->columnNames as $name) {
-                $quotedName = $this->db->quoteColumnName($name);
-                $constraintCondition[] = "$quotedTableName.$quotedName=(SELECT $quotedName FROM `EXCLUDED`)";
-            }
-            $updateCondition[] = $constraintCondition;
-        }
-        if ($updateColumns === true) {
-            $updateColumns = [];
-            foreach ($updateNames as $name) {
-                $quotedName = $this->db->quoteColumnName($name);
-                if (strrpos($quotedName, '.') === false) {
-                    $quotedName = "(SELECT $quotedName FROM `EXCLUDED`)";
-                }
-                $updateColumns[$name] = new Expression($quotedName);
-            }
-        }
-        $updateSql = 'WITH "EXCLUDED" (' . implode(', ', $insertNames)
-            . ') AS (' . (!empty($placeholders) ? 'VALUES (' . implode(', ', $placeholders) . ')' : ltrim($values, ' ')) . ') '
-            . $this->update($table, $updateColumns, $updateCondition, $params);
-        return "$updateSql; $insertSql;";
-    }
 
     /**
      * Generates a batch INSERT SQL statement.
-     *
      * For example,
      *
      * ```php
@@ -126,10 +70,10 @@ class QueryBuilder extends \yii\db\QueryBuilder
      *
      * @param string $table the table that new rows will be inserted into.
      * @param array $columns the column names
-     * @param array|\Generator $rows the rows to be batch inserted into the table
+     * @param array $rows the rows to be batch inserted into the table
      * @return string the batch INSERT SQL statement
      */
-    public function batchInsert($table, $columns, $rows, &$params = [])
+    public function batchInsert($table, $columns, $rows)
     {
         if (empty($rows)) {
             return '';
@@ -138,8 +82,8 @@ class QueryBuilder extends \yii\db\QueryBuilder
         // SQLite supports batch insert natively since 3.7.11
         // http://www.sqlite.org/releaselog/3_7_11.html
         $this->db->open(); // ensure pdo is not null
-        if (version_compare($this->db->getServerVersion(), '3.7.11', '>=')) {
-            return parent::batchInsert($table, $columns, $rows, $params);
+        if (version_compare($this->db->pdo->getAttribute(\PDO::ATTR_SERVER_VERSION), '3.7.11', '>=')) {
+            return parent::batchInsert($table, $columns, $rows);
         }
 
         $schema = $this->db->getSchema();
@@ -153,20 +97,15 @@ class QueryBuilder extends \yii\db\QueryBuilder
         foreach ($rows as $row) {
             $vs = [];
             foreach ($row as $i => $value) {
-                if (isset($columnSchemas[$columns[$i]])) {
+                if (!is_array($value) && isset($columnSchemas[$columns[$i]])) {
                     $value = $columnSchemas[$columns[$i]]->dbTypecast($value);
                 }
                 if (is_string($value)) {
                     $value = $schema->quoteValue($value);
-                } elseif (is_float($value)) {
-                    // ensure type cast always has . as decimal separator in all locales
-                    $value = StringHelper::floatToString($value);
                 } elseif ($value === false) {
                     $value = 0;
                 } elseif ($value === null) {
                     $value = 'NULL';
-                } elseif ($value instanceof ExpressionInterface) {
-                    $value = $this->buildExpression($value, $params);
                 }
                 $vs[] = $value;
             }
@@ -192,7 +131,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
      * @param mixed $value the value for the primary key of the next new row inserted. If this is not set,
      * the next new row's primary key will have a value 1.
      * @return string the SQL statement for resetting sequence
-     * @throws InvalidArgumentException if the table does not exist or there is no sequence associated with the table.
+     * @throws InvalidParamException if the table does not exist or there is no sequence associated with the table.
      */
     public function resetSequence($tableName, $value = null)
     {
@@ -211,10 +150,10 @@ class QueryBuilder extends \yii\db\QueryBuilder
 
             return "UPDATE sqlite_sequence SET seq='$value' WHERE name='{$table->name}'";
         } elseif ($table === null) {
-            throw new InvalidArgumentException("Table not found: $tableName");
+            throw new InvalidParamException("Table not found: $tableName");
+        } else {
+            throw new InvalidParamException("There is not sequence associated with table '$tableName'.'");
         }
-
-        throw new InvalidArgumentException("There is not sequence associated with table '$tableName'.'");
     }
 
     /**
@@ -227,7 +166,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
      */
     public function checkIntegrity($check = true, $schema = '', $table = '')
     {
-        return 'PRAGMA foreign_keys=' . (int) $check;
+        return 'PRAGMA foreign_keys='.(int) $check;
     }
 
     /**
@@ -362,61 +301,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
     }
 
     /**
-     * {@inheritdoc}
-     * @throws NotSupportedException this is not supported by SQLite.
-     */
-    public function addUnique($name, $table, $columns)
-    {
-        throw new NotSupportedException(__METHOD__ . ' is not supported by SQLite.');
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws NotSupportedException this is not supported by SQLite.
-     */
-    public function dropUnique($name, $table)
-    {
-        throw new NotSupportedException(__METHOD__ . ' is not supported by SQLite.');
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws NotSupportedException this is not supported by SQLite.
-     */
-    public function addCheck($name, $table, $expression)
-    {
-        throw new NotSupportedException(__METHOD__ . ' is not supported by SQLite.');
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws NotSupportedException this is not supported by SQLite.
-     */
-    public function dropCheck($name, $table)
-    {
-        throw new NotSupportedException(__METHOD__ . ' is not supported by SQLite.');
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws NotSupportedException this is not supported by SQLite.
-     */
-    public function addDefaultValue($name, $table, $column, $value)
-    {
-        throw new NotSupportedException(__METHOD__ . ' is not supported by SQLite.');
-    }
-
-    /**
-     * {@inheritdoc}
-     * @throws NotSupportedException this is not supported by SQLite.
-     */
-    public function dropDefaultValue($name, $table)
-    {
-        throw new NotSupportedException(__METHOD__ . ' is not supported by SQLite.');
-    }
-
-    /**
-     * {@inheritdoc}
+     * @inheritdoc
      * @throws NotSupportedException
      * @since 2.0.8
      */
@@ -426,7 +311,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      * @throws NotSupportedException
      * @since 2.0.8
      */
@@ -436,7 +321,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      * @throws NotSupportedException
      * @since 2.0.8
      */
@@ -446,7 +331,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      * @throws NotSupportedException
      * @since 2.0.8
      */
@@ -456,7 +341,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function buildLimit($limit, $offset)
     {
@@ -476,7 +361,52 @@ class QueryBuilder extends \yii\db\QueryBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
+     * @throws NotSupportedException if `$columns` is an array
+     */
+    protected function buildSubqueryInCondition($operator, $columns, $values, &$params)
+    {
+        if (is_array($columns)) {
+            throw new NotSupportedException(__METHOD__ . ' is not supported by SQLite.');
+        }
+        return parent::buildSubqueryInCondition($operator, $columns, $values, $params);
+    }
+
+    /**
+     * Builds SQL for IN condition
+     *
+     * @param string $operator
+     * @param array $columns
+     * @param array $values
+     * @param array $params
+     * @return string SQL
+     */
+    protected function buildCompositeInCondition($operator, $columns, $values, &$params)
+    {
+        $quotedColumns = [];
+        foreach ($columns as $i => $column) {
+            $quotedColumns[$i] = strpos($column, '(') === false ? $this->db->quoteColumnName($column) : $column;
+        }
+        $vss = [];
+        foreach ($values as $value) {
+            $vs = [];
+            foreach ($columns as $i => $column) {
+                if (isset($value[$column])) {
+                    $phName = self::PARAM_PREFIX . count($params);
+                    $params[$phName] = $value[$column];
+                    $vs[] = $quotedColumns[$i] . ($operator === 'IN' ? ' = ' : ' != ') . $phName;
+                } else {
+                    $vs[] = $quotedColumns[$i] . ($operator === 'IN' ? ' IS' : ' IS NOT') . ' NULL';
+                }
+            }
+            $vss[] = '(' . implode($operator === 'IN' ? ' AND ' : ' OR ', $vs) . ')';
+        }
+
+        return '(' . implode($operator === 'IN' ? ' OR ' : ' AND ', $vss) . ')';
+    }
+
+    /**
+     * @inheritdoc
      */
     public function build($query, $params = [])
     {
@@ -498,15 +428,15 @@ class QueryBuilder extends \yii\db\QueryBuilder
 
         if (!empty($query->orderBy)) {
             foreach ($query->orderBy as $expression) {
-                if ($expression instanceof ExpressionInterface) {
-                    $this->buildExpression($expression, $params);
+                if ($expression instanceof Expression) {
+                    $params = array_merge($params, $expression->params);
                 }
             }
         }
         if (!empty($query->groupBy)) {
             foreach ($query->groupBy as $expression) {
-                if ($expression instanceof ExpressionInterface) {
-                    $this->buildExpression($expression, $params);
+                if ($expression instanceof Expression) {
+                    $params = array_merge($params, $expression->params);
                 }
             }
         }
@@ -520,7 +450,7 @@ class QueryBuilder extends \yii\db\QueryBuilder
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function buildUnion($unions, &$params)
     {

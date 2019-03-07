@@ -16,7 +16,7 @@ class SuiteManager
     public static $name;
 
     /**
-     * @var \PHPUnit\Framework\TestSuite
+     * @var \PHPUnit_Framework_TestSuite
      */
     protected $suite = null;
 
@@ -108,7 +108,7 @@ class SuiteManager
     {
         $this->configureTest($test);
 
-        if ($test instanceof \PHPUnit\Framework\DataProviderTestSuite) {
+        if ($test instanceof \PHPUnit_Framework_TestSuite_DataProvider) {
             foreach ($test->tests() as $t) {
                 $this->addToSuite($t);
             }
@@ -150,7 +150,7 @@ class SuiteManager
     }
 
 
-    public function run(PHPUnit\Runner $runner, \PHPUnit\Framework\TestResult $result, $options)
+    public function run(PHPUnit\Runner $runner, \PHPUnit_Framework_TestResult $result, $options)
     {
         $runner->prepareSuite($this->suite, $options);
         $this->dispatcher->dispatch(Events::SUITE_BEFORE, new Event\SuiteEvent($this->suite, $result, $this->settings));

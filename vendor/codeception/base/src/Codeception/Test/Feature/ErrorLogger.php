@@ -6,7 +6,7 @@ use Codeception\Test\Test as CodeceptionTest;
 trait ErrorLogger
 {
     /**
-     * @return \PHPUnit\Framework\TestResult
+     * @return \PHPUnit_Framework_TestResult
      */
     abstract public function getTestResultObject();
 

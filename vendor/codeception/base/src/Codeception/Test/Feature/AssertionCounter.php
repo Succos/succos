@@ -12,11 +12,11 @@ trait AssertionCounter
 
     protected function assertionCounterStart()
     {
-        \PHPUnit\Framework\Assert::resetCount();
+        \PHPUnit_Framework_Assert::resetCount();
     }
 
     protected function assertionCounterEnd()
     {
-        $this->numAssertions = \PHPUnit\Framework\Assert::getCount();
+        $this->numAssertions = \PHPUnit_Framework_Assert::getCount();
     }
 }

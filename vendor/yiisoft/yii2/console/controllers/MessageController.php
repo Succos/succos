@@ -9,7 +9,6 @@ namespace yii\console\controllers;
 
 use Yii;
 use yii\console\Exception;
-use yii\console\ExitCode;
 use yii\db\Connection;
 use yii\db\Query;
 use yii\di\Instance;
@@ -132,29 +131,10 @@ class MessageController extends \yii\console\Controller
      * @see isCategoryIgnored
      */
     public $ignoreCategories = [];
-    /**
-     * @var string File header in generated PHP file with messages. This property is used only if [[$format]] is "php".
-     * @since 2.0.13
-     */
-    public $phpFileHeader = '';
-    /**
-     * @var string|null DocBlock used for messages array in generated PHP file. If `null`, default DocBlock will be used.
-     * This property is used only if [[$format]] is "php".
-     * @since 2.0.13
-     */
-    public $phpDocBlock;
-
-    /**
-     * @var array Config for messages extraction.
-     * @see actionExtract()
-     * @see initConfig()
-     * @since 2.0.13
-     */
-    protected $config;
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function options($actionID)
     {
@@ -175,13 +155,11 @@ class MessageController extends \yii\console\Controller
             'messageTable',
             'catalog',
             'ignoreCategories',
-            'phpFileHeader',
-            'phpDocBlock',
         ]);
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      * @since 2.0.8
      */
     public function optionAliases()
@@ -205,7 +183,7 @@ class MessageController extends \yii\console\Controller
     }
 
     /**
-     * Creates a configuration file for the "extract" command using command line options specified.
+     * Creates a configuration file for the "extract" command using command line options specified
      *
      * The generated configuration file contains parameters required
      * for source code messages extraction.
@@ -220,7 +198,7 @@ class MessageController extends \yii\console\Controller
         $filePath = Yii::getAlias($filePath);
         if (file_exists($filePath)) {
             if (!$this->confirm("File '{$filePath}' already exists. Do you wish to overwrite it?")) {
-                return ExitCode::OK;
+                return self::EXIT_CODE_NORMAL;
             }
         }
 
@@ -241,13 +219,13 @@ return $array;
 
 EOD;
 
-        if (file_put_contents($filePath, $content, LOCK_EX) === false) {
+        if (file_put_contents($filePath, $content) === false) {
             $this->stdout("Configuration file was NOT created: '{$filePath}'.\n\n", Console::FG_RED);
-            return ExitCode::UNSPECIFIED_ERROR;
+            return self::EXIT_CODE_ERROR;
         }
 
         $this->stdout("Configuration file created: '{$filePath}'.\n\n", Console::FG_GREEN);
-        return ExitCode::OK;
+        return self::EXIT_CODE_NORMAL;
     }
 
     /**
@@ -267,17 +245,17 @@ EOD;
 
         if (file_exists($filePath)) {
             if (!$this->confirm("File '{$filePath}' already exists. Do you wish to overwrite it?")) {
-                return ExitCode::OK;
+                return self::EXIT_CODE_NORMAL;
             }
         }
 
         if (!copy(Yii::getAlias('@yii/views/messageConfig.php'), $filePath)) {
             $this->stdout("Configuration file template was NOT created at '{$filePath}'.\n\n", Console::FG_RED);
-            return ExitCode::UNSPECIFIED_ERROR;
+            return self::EXIT_CODE_ERROR;
         }
 
         $this->stdout("Configuration file template created at '{$filePath}'.\n\n", Console::FG_GREEN);
-        return ExitCode::OK;
+        return self::EXIT_CODE_NORMAL;
     }
 
     /**
@@ -293,50 +271,86 @@ EOD;
      */
     public function actionExtract($configFile = null)
     {
-        $this->initConfig($configFile);
+        $configFileContent = [];
+        if ($configFile !== null) {
+            $configFile = Yii::getAlias($configFile);
+            if (!is_file($configFile)) {
+                throw new Exception("The configuration file does not exist: $configFile");
+            }
+            $configFileContent = require($configFile);
+        }
 
-        $files = FileHelper::findFiles(realpath($this->config['sourcePath']), $this->config);
+        $config = array_merge(
+            $this->getOptionValues($this->action->id),
+            $configFileContent,
+            $this->getPassedOptionValues()
+        );
+        $config['sourcePath'] = Yii::getAlias($config['sourcePath']);
+        $config['messagePath'] = Yii::getAlias($config['messagePath']);
+
+        if (!isset($config['sourcePath'], $config['languages'])) {
+            throw new Exception('The configuration file must specify "sourcePath" and "languages".');
+        }
+        if (!is_dir($config['sourcePath'])) {
+            throw new Exception("The source path {$config['sourcePath']} is not a valid directory.");
+        }
+        if (empty($config['format']) || !in_array($config['format'], ['php', 'po', 'pot', 'db'])) {
+            throw new Exception('Format should be either "php", "po", "pot" or "db".');
+        }
+        if (in_array($config['format'], ['php', 'po', 'pot'])) {
+            if (!isset($config['messagePath'])) {
+                throw new Exception('The configuration file must specify "messagePath".');
+            }
+            if (!is_dir($config['messagePath'])) {
+                throw new Exception("The message path {$config['messagePath']} is not a valid directory.");
+            }
+        }
+        if (empty($config['languages'])) {
+            throw new Exception('Languages cannot be empty.');
+        }
+
+        $files = FileHelper::findFiles(realpath($config['sourcePath']), $config);
 
         $messages = [];
         foreach ($files as $file) {
-            $messages = array_merge_recursive($messages, $this->extractMessages($file, $this->config['translator'], $this->config['ignoreCategories']));
+            $messages = array_merge_recursive($messages, $this->extractMessages($file, $config['translator'], $config['ignoreCategories']));
         }
 
-        $catalog = isset($this->config['catalog']) ? $this->config['catalog'] : 'messages';
+        $catalog = isset($config['catalog']) ? $config['catalog'] : 'messages';
 
-        if (in_array($this->config['format'], ['php', 'po'])) {
-            foreach ($this->config['languages'] as $language) {
-                $dir = $this->config['messagePath'] . DIRECTORY_SEPARATOR . $language;
+        if (in_array($config['format'], ['php', 'po'])) {
+            foreach ($config['languages'] as $language) {
+                $dir = $config['messagePath'] . DIRECTORY_SEPARATOR . $language;
                 if (!is_dir($dir) && !@mkdir($dir)) {
                     throw new Exception("Directory '{$dir}' can not be created.");
                 }
-                if ($this->config['format'] === 'po') {
-                    $this->saveMessagesToPO($messages, $dir, $this->config['overwrite'], $this->config['removeUnused'], $this->config['sort'], $catalog, $this->config['markUnused']);
+                if ($config['format'] === 'po') {
+                    $this->saveMessagesToPO($messages, $dir, $config['overwrite'], $config['removeUnused'], $config['sort'], $catalog, $config['markUnused']);
                 } else {
-                    $this->saveMessagesToPHP($messages, $dir, $this->config['overwrite'], $this->config['removeUnused'], $this->config['sort'], $this->config['markUnused']);
+                    $this->saveMessagesToPHP($messages, $dir, $config['overwrite'], $config['removeUnused'], $config['sort'], $config['markUnused']);
                 }
             }
-        } elseif ($this->config['format'] === 'db') {
+        } elseif ($config['format'] === 'db') {
             /** @var Connection $db */
-            $db = Instance::ensure($this->config['db'], Connection::className());
-            $sourceMessageTable = isset($this->config['sourceMessageTable']) ? $this->config['sourceMessageTable'] : '{{%source_message}}';
-            $messageTable = isset($this->config['messageTable']) ? $this->config['messageTable'] : '{{%message}}';
+            $db = Instance::ensure($config['db'], Connection::className());
+            $sourceMessageTable = isset($config['sourceMessageTable']) ? $config['sourceMessageTable'] : '{{%source_message}}';
+            $messageTable = isset($config['messageTable']) ? $config['messageTable'] : '{{%message}}';
             $this->saveMessagesToDb(
                 $messages,
                 $db,
                 $sourceMessageTable,
                 $messageTable,
-                $this->config['removeUnused'],
-                $this->config['languages'],
-                $this->config['markUnused']
+                $config['removeUnused'],
+                $config['languages'],
+                $config['markUnused']
             );
-        } elseif ($this->config['format'] === 'pot') {
-            $this->saveMessagesToPOT($messages, $this->config['messagePath'], $catalog);
+        } elseif ($config['format'] === 'pot') {
+            $this->saveMessagesToPOT($messages, $config['messagePath'], $catalog);
         }
     }
 
     /**
-     * Saves messages to database.
+     * Saves messages to database
      *
      * @param array $messages
      * @param Connection $db
@@ -349,13 +363,13 @@ EOD;
     protected function saveMessagesToDb($messages, $db, $sourceMessageTable, $messageTable, $removeUnused, $languages, $markUnused)
     {
         $currentMessages = [];
-        $rows = (new Query())->select(['id', 'category', 'message'])->from($sourceMessageTable)->all($db);
+        $rows = (new Query)->select(['id', 'category', 'message'])->from($sourceMessageTable)->all($db);
         foreach ($rows as $row) {
             $currentMessages[$row['category']][$row['id']] = $row['message'];
         }
 
         $currentLanguages = [];
-        $rows = (new Query())->select(['language'])->from($messageTable)->groupBy('language')->all($db);
+        $rows = (new Query)->select(['language'])->from($messageTable)->groupBy('language')->all($db);
         foreach ($rows as $row) {
             $currentLanguages[] = $row['language'];
         }
@@ -408,7 +422,7 @@ EOD;
 
         if (!empty($missingLanguages)) {
             $updatedMessages = [];
-            $rows = (new Query())->select(['id', 'category', 'message'])->from($sourceMessageTable)->all($db);
+            $rows = (new Query)->select(['id', 'category', 'message'])->from($sourceMessageTable)->all($db);
             foreach ($rows as $row) {
                 $updatedMessages[$row['category']][$row['id']] = $row['message'];
             }
@@ -438,7 +452,7 @@ EOD;
                ->execute();
             $this->stdout("deleted.\n");
         } elseif ($markUnused) {
-            $rows = (new Query())
+            $rows = (new Query)
                 ->select(['id', 'message'])
                 ->from($sourceMessageTable)
                 ->where(['in', 'id', $obsolete])
@@ -458,7 +472,7 @@ EOD;
     }
 
     /**
-     * Extracts messages from a file.
+     * Extracts messages from a file
      *
      * @param string $fileName name of the file to extract messages from
      * @param string $translator name of the function used to translate messages
@@ -468,9 +482,8 @@ EOD;
      */
     protected function extractMessages($fileName, $translator, $ignoreCategories = [])
     {
-        $this->stdout('Extracting messages from ');
-        $this->stdout($fileName, Console::FG_CYAN);
-        $this->stdout("...\n");
+        $coloredFileName = Console::ansiFormat($fileName, [Console::FG_CYAN]);
+        $this->stdout("Extracting messages from $coloredFileName...\n");
 
         $subject = file_get_contents($fileName);
         $messages = [];
@@ -493,7 +506,7 @@ EOD;
      * @param array $ignoreCategories message categories to ignore.
      * @return array messages.
      */
-    protected function extractMessagesFromTokens(array $tokens, array $translatorTokens, array $ignoreCategories)
+    private function extractMessagesFromTokens(array $tokens, array $translatorTokens, array $ignoreCategories)
     {
         $messages = [];
         $translatorTokensCount = count($translatorTokens);
@@ -524,14 +537,9 @@ EOD;
                             $category = mb_substr($category, 1, -1);
 
                             if (!$this->isCategoryIgnored($category, $ignoreCategories)) {
-                                $fullMessage = mb_substr($buffer[2][1], 1, -1);
-                                $i = 3;
-                                while ($i < count($buffer) - 1 && !is_array($buffer[$i]) && $buffer[$i] === '.') {
-                                    $fullMessage .= mb_substr($buffer[$i + 1][1], 1, -1);
-                                    $i += 2;
-                                }
+                                $message = stripcslashes($buffer[2][1]);
+                                $message = mb_substr($message, 1, -1);
 
-                                $message = stripcslashes($fullMessage);
                                 $messages[$category][] = $message;
                             }
 
@@ -572,7 +580,6 @@ EOD;
 
     /**
      * The method checks, whether the $category is ignored according to $ignoreCategories array.
-     *
      * Examples:
      *
      * - `myapp` - will be ignored only `myapp` category;
@@ -600,7 +607,7 @@ EOD;
     }
 
     /**
-     * Finds out if two PHP tokens are equal.
+     * Finds out if two PHP tokens are equal
      *
      * @param array|string $a
      * @param array|string $b
@@ -615,12 +622,11 @@ EOD;
         if (isset($a[0], $a[1], $b[0], $b[1])) {
             return $a[0] === $b[0] && $a[1] == $b[1];
         }
-
         return false;
     }
 
     /**
-     * Finds out a line of the first non-char PHP token found.
+     * Finds out a line of the first non-char PHP token found
      *
      * @param array $tokens
      * @return int|string
@@ -633,12 +639,11 @@ EOD;
                 return $token[2];
             }
         }
-
         return 'unknown';
     }
 
     /**
-     * Writes messages into PHP files.
+     * Writes messages into PHP files
      *
      * @param array $messages
      * @param string $dirName name of the directory to write to
@@ -650,7 +655,7 @@ EOD;
     protected function saveMessagesToPHP($messages, $dirName, $overwrite, $removeUnused, $sort, $markUnused)
     {
         foreach ($messages as $category => $msgs) {
-            $file = str_replace('\\', '/', "$dirName/$category.php");
+            $file = str_replace("\\", '/', "$dirName/$category.php");
             $path = dirname($file);
             FileHelper::createDirectory($path);
             $msgs = array_values(array_unique($msgs));
@@ -661,7 +666,7 @@ EOD;
     }
 
     /**
-     * Writes category messages into PHP file.
+     * Writes category messages into PHP file
      *
      * @param array $messages
      * @param string $fileName name of the file to write to
@@ -675,13 +680,13 @@ EOD;
     protected function saveMessagesCategoryToPHP($messages, $fileName, $overwrite, $removeUnused, $sort, $category, $markUnused)
     {
         if (is_file($fileName)) {
-            $rawExistingMessages = require $fileName;
+            $rawExistingMessages = require($fileName);
             $existingMessages = $rawExistingMessages;
             sort($messages);
             ksort($existingMessages);
             if (array_keys($existingMessages) === $messages && (!$sort || array_keys($rawExistingMessages) === $messages)) {
                 $this->stdout("Nothing new in \"$category\" category... Nothing to save.\n\n", Console::FG_GREEN);
-                return ExitCode::OK;
+                return self::EXIT_CODE_NORMAL;
             }
             unset($rawExistingMessages);
             $merged = [];
@@ -702,7 +707,7 @@ EOD;
             ksort($existingMessages);
             foreach ($existingMessages as $message => $translation) {
                 if (!$removeUnused && !isset($merged[$message]) && !isset($todo[$message])) {
-                    if (!$markUnused || (!empty($translation) && (strncmp($translation, '@@', 2) === 0 && substr_compare($translation, '@@', -2, 2) === 0))) {
+                    if (!empty($translation) && (!$markUnused || (strncmp($translation, '@@', 2) === 0 && substr_compare($translation, '@@', -2, 2) === 0))) {
                         $todo[$message] = $translation;
                     } else {
                         $todo[$message] = '@@' . $translation . '@@';
@@ -728,22 +733,38 @@ EOD;
         $array = VarDumper::export($merged);
         $content = <<<EOD
 <?php
-{$this->config['phpFileHeader']}{$this->config['phpDocBlock']}
+/**
+ * Message translations.
+ *
+ * This file is automatically generated by 'yii {$this->id}/{$this->action->id}' command.
+ * It contains the localizable messages extracted from source code.
+ * You may modify this file by translating the extracted messages.
+ *
+ * Each array element represents the translation (value) of a message (key).
+ * If the value is empty, the message is considered as not translated.
+ * Messages that no longer need translation will have their translations
+ * enclosed between a pair of '@@' marks.
+ *
+ * Message string can be used with plural forms format. Check i18n section
+ * of the guide for details.
+ *
+ * NOTE: this file must be saved in UTF-8 encoding.
+ */
 return $array;
 
 EOD;
 
-        if (file_put_contents($fileName, $content, LOCK_EX) === false) {
+        if (file_put_contents($fileName, $content) === false) {
             $this->stdout("Translation was NOT saved.\n\n", Console::FG_RED);
-            return ExitCode::UNSPECIFIED_ERROR;
+            return self::EXIT_CODE_ERROR;
         }
 
         $this->stdout("Translation saved.\n\n", Console::FG_GREEN);
-        return ExitCode::OK;
+        return self::EXIT_CODE_NORMAL;
     }
 
     /**
-     * Writes messages into PO file.
+     * Writes messages into PO file
      *
      * @param array $messages
      * @param string $dirName name of the directory to write to
@@ -755,7 +776,7 @@ EOD;
      */
     protected function saveMessagesToPO($messages, $dirName, $overwrite, $removeUnused, $sort, $catalog, $markUnused)
     {
-        $file = str_replace('\\', '/', "$dirName/$catalog.po");
+        $file = str_replace("\\", '/', "$dirName/$catalog.po");
         FileHelper::createDirectory(dirname($file));
         $this->stdout("Saving messages to $file...\n");
 
@@ -804,7 +825,7 @@ EOD;
                 // add obsolete unused messages
                 foreach ($existingMessages as $message => $translation) {
                     if (!$removeUnused && !isset($merged[$category . chr(4) . $message]) && !isset($todos[$category . chr(4) . $message])) {
-                        if (!$markUnused || (!empty($translation) && (substr($translation, 0, 2) === '@@' && substr($translation, -2) === '@@'))) {
+                        if (!empty($translation) && (!$markUnused || (substr($translation, 0, 2) === '@@' && substr($translation, -2) === '@@'))) {
                             $todos[$category . chr(4) . $message] = $translation;
                         } else {
                             $todos[$category . chr(4) . $message] = '@@' . $translation . '@@';
@@ -839,7 +860,7 @@ EOD;
     }
 
     /**
-     * Writes messages into POT file.
+     * Writes messages into POT file
      *
      * @param array $messages
      * @param string $dirName name of the directory to write to
@@ -848,7 +869,7 @@ EOD;
      */
     protected function saveMessagesToPOT($messages, $dirName, $catalog)
     {
-        $file = str_replace('\\', '/', "$dirName/$catalog.pot");
+        $file = str_replace("\\", '/', "$dirName/$catalog.pot");
         FileHelper::createDirectory(dirname($file));
         $this->stdout("Saving messages to $file...\n");
 
@@ -873,74 +894,6 @@ EOD;
             $this->stdout("Translation saved.\n", Console::FG_GREEN);
         } else {
             $this->stdout("Nothing to save.\n", Console::FG_GREEN);
-        }
-    }
-
-    /**
-     * @param string $configFile
-     * @throws Exception If configuration file does not exists.
-     * @since 2.0.13
-     */
-    protected function initConfig($configFile)
-    {
-        $configFileContent = [];
-        if ($configFile !== null) {
-            $configFile = Yii::getAlias($configFile);
-            if (!is_file($configFile)) {
-                throw new Exception("The configuration file does not exist: $configFile");
-            }
-            $configFileContent = require $configFile;
-        }
-
-        $this->config = array_merge(
-            $this->getOptionValues($this->action->id),
-            $configFileContent,
-            $this->getPassedOptionValues()
-        );
-        $this->config['sourcePath'] = Yii::getAlias($this->config['sourcePath']);
-        $this->config['messagePath'] = Yii::getAlias($this->config['messagePath']);
-
-        if (!isset($this->config['sourcePath'], $this->config['languages'])) {
-            throw new Exception('The configuration file must specify "sourcePath" and "languages".');
-        }
-        if (!is_dir($this->config['sourcePath'])) {
-            throw new Exception("The source path {$this->config['sourcePath']} is not a valid directory.");
-        }
-        if (empty($this->config['format']) || !in_array($this->config['format'], ['php', 'po', 'pot', 'db'])) {
-            throw new Exception('Format should be either "php", "po", "pot" or "db".');
-        }
-        if (in_array($this->config['format'], ['php', 'po', 'pot'])) {
-            if (!isset($this->config['messagePath'])) {
-                throw new Exception('The configuration file must specify "messagePath".');
-            }
-            if (!is_dir($this->config['messagePath'])) {
-                throw new Exception("The message path {$this->config['messagePath']} is not a valid directory.");
-            }
-        }
-        if (empty($this->config['languages'])) {
-            throw new Exception('Languages cannot be empty.');
-        }
-
-        if ($this->config['format'] === 'php' && $this->config['phpDocBlock'] === null) {
-            $this->config['phpDocBlock'] = <<<DOCBLOCK
-/**
- * Message translations.
- *
- * This file is automatically generated by 'yii {$this->id}/{$this->action->id}' command.
- * It contains the localizable messages extracted from source code.
- * You may modify this file by translating the extracted messages.
- *
- * Each array element represents the translation (value) of a message (key).
- * If the value is empty, the message is considered as not translated.
- * Messages that no longer need translation will have their translations
- * enclosed between a pair of '@@' marks.
- *
- * Message string can be used with plural forms format. Check i18n section
- * of the guide for details.
- *
- * NOTE: this file must be saved in UTF-8 encoding.
- */
-DOCBLOCK;
         }
     }
 }

@@ -8,9 +8,7 @@
 namespace yii\debug\panels;
 
 use Yii;
-use yii\base\InvalidConfigException;
 use yii\debug\Panel;
-use yii\helpers\ArrayHelper;
 use yii\log\Logger;
 use yii\debug\models\search\Db;
 
@@ -116,17 +114,14 @@ class DbPanel extends Panel
             $searchModel->load($this->defaultFilter, '');
         }
 
-        $models = $this->getModels();
-        $dataProvider = $searchModel->search($models);
+        $dataProvider = $searchModel->search($this->getModels());
         $dataProvider->getSort()->defaultOrder = $this->defaultOrder;
-        $sumDuplicates = $this->sumDuplicateQueries($models);
 
         return Yii::$app->view->render('panels/db/detail', [
             'panel' => $this,
             'dataProvider' => $dataProvider,
             'searchModel' => $searchModel,
-            'hasExplain' => $this->hasExplain(),
-            'sumDuplicates' => $sumDuplicates,
+            'hasExplain' => $this->hasExplain()
         ]);
     }
 
@@ -191,7 +186,6 @@ class DbPanel extends Panel
         if ($this->_models === null) {
             $this->_models = [];
             $timings = $this->calculateTimings();
-            $duplicates = $this->countDuplicateQuery($timings);
 
             foreach ($timings as $seq => $dbTiming) {
                 $this->_models[] = [
@@ -201,47 +195,11 @@ class DbPanel extends Panel
                     'trace' => $dbTiming['trace'],
                     'timestamp' => ($dbTiming['timestamp'] * 1000), // in milliseconds
                     'seq' => $seq,
-                    'duplicate' => $duplicates[$dbTiming['info']],
                 ];
             }
         }
 
         return $this->_models;
-    }
-
-    /**
-     * Return associative array, where key is query string
-     * and value is number of occurrences the same query in array.
-     *
-     * @param $timings
-     * @return array
-     * @since 2.0.13
-     */
-    public function countDuplicateQuery($timings)
-    {
-        $query = ArrayHelper::getColumn($timings, 'info');
-
-        return array_count_values($query);
-    }
-
-    /**
-     * Returns sum of all duplicated queries
-     *
-     * @param $modelData
-     * @return int
-     * @since 2.0.13
-     */
-    public function sumDuplicateQueries($modelData)
-    {
-        $numDuplicates = 0;
-        $duplicates = ArrayHelper::getColumn($modelData, 'duplicate');
-        foreach ($duplicates as $duplicate) {
-            if ($duplicate > 1) {
-                $numDuplicates++;
-            }
-        }
-
-        return $numDuplicates;
     }
 
     /**
@@ -285,19 +243,6 @@ class DbPanel extends Panel
             },
             []
         );
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function isEnabled()
-    {
-        try {
-            $this->getDb();
-        } catch (InvalidConfigException $exception) {
-            return false;
-        }
-        return true;
     }
 
     /**

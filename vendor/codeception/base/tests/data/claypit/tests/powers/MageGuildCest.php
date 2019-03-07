@@ -1,6 +1,5 @@
 <?php
-class MageGuildCest
-{
+class MageGuildCest {
 
     /**
      * @env magic

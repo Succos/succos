@@ -7,6 +7,7 @@
 
 namespace yii\test;
 
+use Yii;
 use yii\base\InvalidConfigException;
 use yii\db\TableSchema;
 
@@ -53,7 +54,7 @@ class ActiveFixture extends BaseActiveFixture
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function init()
     {
@@ -66,7 +67,8 @@ class ActiveFixture extends BaseActiveFixture
     /**
      * Loads the fixture.
      *
-     * It populate the table with the data returned by [[getData()]].
+     * The default implementation will first clean up the table by calling [[resetTable()]].
+     * It will then populate the table with the data returned by [[getData()]].
      *
      * If you override this method, you should consider calling the parent implementation
      * so that the data returned by [[getData()]] can be populated into the table.
@@ -94,21 +96,17 @@ class ActiveFixture extends BaseActiveFixture
     protected function getData()
     {
         if ($this->dataFile === null) {
+            $class = new \ReflectionClass($this);
+            $dataFile = dirname($class->getFileName()) . '/data/' . $this->getTableSchema()->fullName . '.php';
 
-            if ($this->dataDirectory !== null) {
-                $dataFile = $this->getTableSchema()->fullName . '.php';
-            } else {
-                $class = new \ReflectionClass($this);
-                $dataFile = dirname($class->getFileName()) . '/data/' . $this->getTableSchema()->fullName . '.php';
-            }
-
-            return $this->loadData($dataFile, false);
+            return is_file($dataFile) ? require($dataFile) : [];
+        } else {
+            return parent::getData();
         }
-        return parent::getData();
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function unload()
     {

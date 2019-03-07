@@ -22,35 +22,6 @@ To run Selenium Server you need [Java](https://www.java.com/) as well as Chrome 
              browser: chrome # 'chrome' or 'firefox'
 ```
 
-Launch Selenium Server before executing tests.
-
-```
-java -jar "/path/to/selenium-server-standalone-xxx.jar"
-```
-
-### ChromeDriver
-
-To run tests in Chrome browser you may connect to ChromeDriver directly, without using Selenium Server.
-
-1. Install [ChromeDriver](https://sites.google.com/a/chromium.org/chromedriver/getting-started).
-2. Launch ChromeDriver: `chromedriver --url-base=/wd/hub`
-3. Configure this module to use ChromeDriver port:
-
-```yaml
-    modules:
-       enabled:
-          - WebDriver:
-             url: 'http://localhost/'
-             window_size: false # disabled in ChromeDriver
-             port: 9515
-             browser: chrome
-             capabilities:
-                 chromeOptions: # additional chrome options
-```
-
-Additional [Chrome options](https://sites.google.com/a/chromium.org/chromedriver/capabilities) can be set in `chromeOptions` capabilities.
-
-
 ### PhantomJS
 
 PhantomJS is a [headless browser](https://en.wikipedia.org/wiki/Headless_browser) alternative to Selenium Server that implements
@@ -153,10 +124,9 @@ you should use a tunnel application provided by a service.
 * `host` - Selenium server host (127.0.0.1 by default).
 * `port` - Selenium server port (4444 by default).
 * `restart` - Set to `false` (default) to use the same browser window for all tests, or set to `true` to create a new window for each test. In any case, when all tests are finished the browser window is closed.
-* `start` - Autostart a browser for tests. Can be disabled if browser session is started with `_initializeSession` inside a Helper.
 * `window_size` - Initial window size. Set to `maximize` or a dimension in the format `640x480`.
 * `clear_cookies` - Set to false to keep cookies, or set to true (default) to delete all cookies between tests.
-* `wait` (default: 0 seconds) - Whenever element is required and is not on page, wait for n seconds to find it before fail.
+* `wait` - Implicit wait (default 0 seconds).
 * `capabilities` - Sets Selenium [desired capabilities](https://github.com/SeleniumHQ/selenium/wiki/DesiredCapabilities). Should be a key-value array.
 * `connection_timeout` - timeout for opening a connection to remote selenium server (30 seconds by default).
 * `request_timeout` - timeout for a request to return something from remote selenium server (30 seconds by default).
@@ -230,81 +200,8 @@ $this->getModule('WebDriver')->webDriver->getKeyboard()->sendKeys('hello, webdri
 ```
 
 
+
 ## Actions
-
-### _backupSession
-
-*hidden API method, expected to be used from Helper classes*
- 
-Returns current WebDriver session for saving
-
- * `return` RemoteWebDriver
-
-
-### _capabilities
-
-*hidden API method, expected to be used from Helper classes*
- 
-Change capabilities of WebDriver. Should be executed before starting a new browser session.
-This method expects a function to be passed which returns array or [WebDriver Desired Capabilities](https://github.com/facebook/php-webdriver/blob/community/lib/Remote/DesiredCapabilities.php) object.
-Additional [Chrome options](https://github.com/facebook/php-webdriver/wiki/ChromeOptions) (like adding extensions) can be passed as well.
-
-```php
-<?php // in helper
-public function _before(TestInterface $test)
-{
-    $this->getModule('WebDriver')->_capabilities(function($currentCapabilities) {
-        // or new \Facebook\WebDriver\Remote\DesiredCapabilities();
-        return \Facebook\WebDriver\Remote\DesiredCapabilities::firefox();
-    });
-}
-```
-
-to make this work load `\Helper\Acceptance` before `WebDriver` in `acceptance.suite.yml`:
-
-```yaml
-modules:
-    enabled:
-        - \Helper\Acceptance
-        - WebDriver
-```
-
-For instance, [**BrowserStack** cloud service](https://www.browserstack.com/automate/capabilities) may require a test name to be set in capabilities.
-This is how it can be done via `_capabilities` method from `Helper\Acceptance`:
-
-```php
-<?php // inside Helper\Acceptance
-public function _before(TestInterface $test)
-{
-     $name = $test->getMetadata()->getName();
-     $this->getModule('WebDriver')->_capabilities(function($currentCapabilities) use ($name) {
-         $currentCapabilities['name'] = $name;
-         return $currentCapabilities;
-     });
-}
-```
-In this case, please ensure that `\Helper\Acceptance` is loaded before WebDriver so new capabilities could be applied.
-
- * `param \Closure` $capabilityFunction
-
-
-### _closeSession
-
-*hidden API method, expected to be used from Helper classes*
- 
-Manually closes current WebDriver session.
-
-```php
-<?php
-$this->getModule('WebDriver')->_closeSession();
-
-// close a specific session
-$webDriver = $this->getModule('WebDriver')->webDriver;
-$this->getModule('WebDriver')->_closeSession($webDriver);
-```
-
- * `param` $webDriver (optional) a specific webdriver session instance
-
 
 ### _findClickable
 
@@ -374,30 +271,7 @@ Uri of currently opened page.
 *hidden API method, expected to be used from Helper classes*
  
 Returns URL of a host.
-
 @throws ModuleConfigException
-
-
-### _initializeSession
-
-*hidden API method, expected to be used from Helper classes*
- 
-Manually starts a new browser session.
-
-```php
-<?php
-$this->getModule('WebDriver')->_initializeSession();
-```
-
-
-
-### _loadSession
-
-*hidden API method, expected to be used from Helper classes*
- 
-Loads current RemoteWebDriver instance as a session
-
- * `param RemoteWebDriver` $session
 
 
 ### _restart
@@ -456,7 +330,7 @@ $I->amOnPage('/');
 $I->amOnPage('/register');
 ```
 
- * `param string` $page
+ * `param` $page
 
 
 ### amOnSubdomain
@@ -511,7 +385,7 @@ $I->appendField('#myTextField', 'appended');
 
 ### attachFile
  
-Attaches a file relative to the Codeception `_data` directory to the given file upload field.
+Attaches a file relative to the Codeception data directory to the given file upload field.
 
 ``` php
 <?php
@@ -526,7 +400,7 @@ $I->attachFile('input[@type="file"]', 'prices.xls');
 
 ### cancelPopup
  
-Dismisses the active JavaScript popup, as created by `window.alert`, `window.confirm`, or `window.prompt`.
+Dismisses the active JavaScript popup, as created by `window.alert`|`window.confirm`|`window.prompt`.
 
 
 ### checkOption
@@ -540,19 +414,6 @@ $I->checkOption('#agree');
 ```
 
  * `param` $option
-
-
-### clearField
- 
-lears given field which isn't empty.
-
-`` php
-?php
-I->clearField('#username');
->
-``
-
-param $field
 
 
 ### click
@@ -680,8 +541,8 @@ But will ignore strings like:
 
 For checking the raw source code, use `seeInSource()`.
 
- * `param string` $text
- * `param string` $selector optional
+ * `param`      $text
+ * `param null` $selector
 
 
 ### dontSeeCheckboxIsChecked
@@ -720,7 +581,7 @@ $I->dontSeeCurrentUrlEquals('/');
 ?>
 ```
 
- * `param string` $uri
+ * `param` $uri
 
 
 ### dontSeeCurrentUrlMatches
@@ -734,7 +595,7 @@ $I->dontSeeCurrentUrlMatches('~$/users/(\d+)~');
 ?>
 ```
 
- * `param string` $uri
+ * `param` $uri
 
 
 ### dontSeeElement
@@ -773,7 +634,7 @@ $I->dontSeeInCurrentUrl('/users/');
 ?>
 ```
 
- * `param string` $uri
+ * `param` $uri
 
 
 ### dontSeeInField
@@ -846,16 +707,6 @@ Checks that the page source doesn't contain the given string.
  * `param` $text
 
 
-### dontSeeInPopup
- 
-Checks that the active JavaScript popup,
-as created by `window.alert`|`window.confirm`|`window.prompt`, does NOT contain the given string.
-
- * `param` $text
-
-@throws \Codeception\Exception\ModuleException
-
-
 ### dontSeeInSource
  
 Checks that the current page contains the given string in its
@@ -889,8 +740,8 @@ $I->dontSeeLink('Checkout now', '/store/cart.php');
 ?>
 ```
 
- * `param string` $text
- * `param string` $url optional
+ * `param` $text
+ * `param null` $url
 
 
 ### dontSeeOptionIsSelected
@@ -930,25 +781,6 @@ $I->dragAndDrop('#drag', '#drop');
  * `param string` $target (CSS ID or XPath)
 
 
-### executeAsyncJS
- 
-Executes asynchronous JavaScript.
-A callback should be executed by JavaScript to exit from a script.
-Callback is passed as a last element in `arguments` array.
-Additional arguments can be passed as array in second parameter.
-
-```js
-// wait for 1200 milliseconds my running `setTimeout`
-* $I->executeAsyncJS('setTimeout(arguments[0], 1200)');
-
-$seconds = 1200; // or seconds are passed as argument
-$I->executeAsyncJS('setTimeout(arguments[1], arguments[0])', [$seconds]);
-```
-
- * `param` $script
- * `param array` $arguments
-
-
 ### executeInSelenium
  
 Low-level API method.
@@ -977,14 +809,10 @@ This example uses jQuery to get a value and assigns that value to a PHP variable
 ```php
 <?php
 $myVar = $I->executeJS('return $("#myField").val()');
-
-// additional arguments can be passed as array
-// Example shows `Hello World` alert:
-$I->executeJS("window.alert(arguments[0])", ['Hello world']);
+?>
 ```
 
  * `param` $script
- * `param array` $arguments
 
 
 ### fillField
@@ -1013,6 +841,7 @@ $I->grabAttributeFrom('#tooltip', 'title');
 ?>
 ```
 
+
  * `param` $cssOrXpath
  * `param` $attribute
 
@@ -1030,7 +859,7 @@ You can set additional cookie params like `domain`, `path` in array passed as la
 
 ### grabFromCurrentUrl
  
-Executes the given regular expression against the current URI and returns the first capturing group.
+Executes the given regular expression against the current URI and returns the first match.
 If no parameters are provided, the full URI is returned.
 
 ``` php
@@ -1040,7 +869,7 @@ $uri = $I->grabFromCurrentUrl();
 ?>
 ```
 
- * `param string` $uri optional
+ * `param null` $uri
 
 
 
@@ -1132,6 +961,7 @@ $I->makeScreenshot('edit_page');
 // saved to: tests/_output/debug/edit_page.png
 $I->makeScreenshot();
 // saved to: tests/_output/debug/2017-05-26_14-24-11_4b3403665fea6.png
+?>
 ```
 
  * `param` $name
@@ -1347,8 +1177,8 @@ But will *not* be true for strings like:
 
 For checking the raw source code, use `seeInSource()`.
 
- * `param string` $text
- * `param string` $selector optional
+ * `param`      $text
+ * `param null` $selector
 
 
 ### seeCheckboxIsChecked
@@ -1393,7 +1223,7 @@ $I->seeCurrentUrlEquals('/');
 ?>
 ```
 
- * `param string` $uri
+ * `param` $uri
 
 
 ### seeCurrentUrlMatches
@@ -1407,7 +1237,7 @@ $I->seeCurrentUrlMatches('~$/users/(\d+)~');
 ?>
 ```
 
- * `param string` $uri
+ * `param` $uri
 
 
 ### seeElement
@@ -1459,13 +1289,13 @@ $I->seeInCurrentUrl('/users/');
 ?>
 ```
 
- * `param string` $uri
+ * `param` $uri
 
 
 ### seeInField
  
-Checks that the given input field or textarea *equals* (i.e. not just contains) the given value.
-Fields are matched by label text, the "name" attribute, CSS, or XPath.
+Checks that the given input field or textarea contains the given value.
+For fuzzy locators, fields are matched by label text, the "name" attribute, CSS, and XPath.
 
 ``` php
 <?php
@@ -1606,8 +1436,8 @@ $I->seeLink('Logout','/logout'); // matches <a href="/logout">Logout</a>
 ?>
 ```
 
- * `param string` $text
- * `param string` $url optional
+ * `param`      $text
+ * `param null` $url
 
 
 ### seeNumberOfElements
@@ -1617,11 +1447,13 @@ Checks that there are a certain number of elements matched by the given locator 
 ``` php
 <?php
 $I->seeNumberOfElements('tr', 10);
-$I->seeNumberOfElements('tr', [0,10]); // between 0 and 10 elements
+$I->seeNumberOfElements('tr', [0,10]); //between 0 and 10 elements
 ?>
 ```
  * `param` $selector
- * `param mixed` $expected int or int[]
+ * `param mixed` $expected :
+- string: strict number
+- array: range of numbers [0,10]
 
 
 ### seeNumberOfElementsInDOM
@@ -1896,15 +1728,15 @@ Can't be used with PhantomJS
 
 ### switchToPreviousTab
  
-Switches to previous browser tab.
+Switches to next browser tab.
 An offset can be specified.
 
 ```php
 <?php
 // switch to previous tab
-$I->switchToPreviousTab();
+$I->switchToNextTab();
 // switch to 2nd previous tab
-$I->switchToPreviousTab(2);
+$I->switchToNextTab(-2);
 ```
 
 Can't be used with PhantomJS
@@ -1984,7 +1816,7 @@ Unselect an option in the given select box.
  
 Wait for $timeout seconds.
 
- * `param int|float` $timeout secs
+ * `param int` $timeout secs
 @throws \Codeception\Exception\TestRuntimeException
 
 
@@ -2092,7 +1924,7 @@ $I->waitForText('foo', 30, '.title'); // secs
 
  * `param string` $text
  * `param int` $timeout seconds
- * `param string` $selector optional
+ * `param null` $selector
 @throws \Exception
 
-<p>&nbsp;</p><div class="alert alert-warning">Module reference is taken from the source code. <a href="https://github.com/Codeception/Codeception/tree/2.4/src/Codeception/Module/WebDriver.php">Help us to improve documentation. Edit module reference</a></div>
+<p>&nbsp;</p><div class="alert alert-warning">Module reference is taken from the source code. <a href="https://github.com/Codeception/Codeception/tree/2.3/src/Codeception/Module/WebDriver.php">Help us to improve documentation. Edit module reference</a></div>

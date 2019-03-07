@@ -37,32 +37,8 @@ This module requires PHPBrowser or any of Framework modules enabled.
 Conflicts with SOAP module
 
 
+
 ## Actions
-
-### amAWSAuthenticated
- 
-Allows to send REST request using AWS Authorization
-Only works with PhpBrowser
-Example
-Config -
-
-modules:
-     enabled:
-         - REST:
-             aws:
-                 key: accessKey
-                 secret: accessSecret
-                 service: awsService
-                 region: awsRegion
-
-```php
-<?php
-$I->amAWSAuthenticated();
-?>
-```
- * `param array` $additionalAWSConfig
-@throws ModuleException
-
 
 ### amBearerAuthenticated
  
@@ -89,26 +65,6 @@ Adds HTTP authentication via username/password.
 
  * `param` $username
  * `param` $password
- * `[Part]` json
- * `[Part]` xml
-
-
-### amNTLMAuthenticated
- 
-Adds NTLM authentication via username/password.
-Requires client to be Guzzle >=6.3.0
-Out of scope for functional modules.
-
-Example:
-```php
-<?php
-$I->amNTLMAuthenticated('jon_snow', 'targaryen');
-?>
-```
-
- * `param` $username
- * `param` $password
-@throws ModuleException
  * `[Part]` json
  * `[Part]` xml
 
@@ -246,7 +202,7 @@ Parameter can be passed either as XmlBuilder, DOMDocument, DOMNode, XML string, 
 
 ### dontSeeXmlResponseMatchesXpath
  
-Checks whether XML response does not match XPath
+Checks wheather XML response does not match XPath
 
 ```php
 <?php
@@ -382,7 +338,7 @@ $fileData = file_get_contents("test_file.jpg");
 $I->seeBinaryResponseEquals(md5($fileData));
 ?>
 ```
-Example: Using sha256 hash
+Example: Using sha256 hsah
 
 ```php
 <?php
@@ -637,7 +593,7 @@ $I->seeResponseMatchesJsonType([
 ?>
 ```
 
-You can also apply filters to check values. Filter can be applied with `:` char after the type declaration.
+You can also apply filters to check values. Filter can be applied with `:` char after the type declatation.
 
 Here is the list of possible filters:
 
@@ -705,7 +661,7 @@ $I->seeXmlResponseIncludes("<result>1</result>");
 
 ### seeXmlResponseMatchesXpath
  
-Checks whether XML response matches XPath
+Checks wheather XML response matches XPath
 
 ```php
 <?php
@@ -864,4 +820,4 @@ $I->stopFollowingRedirects();
  * `[Part]` xml
  * `[Part]` json
 
-<p>&nbsp;</p><div class="alert alert-warning">Module reference is taken from the source code. <a href="https://github.com/Codeception/Codeception/tree/2.4/src/Codeception/Module/REST.php">Help us to improve documentation. Edit module reference</a></div>
+<p>&nbsp;</p><div class="alert alert-warning">Module reference is taken from the source code. <a href="https://github.com/Codeception/Codeception/tree/2.3/src/Codeception/Module/REST.php">Help us to improve documentation. Edit module reference</a></div>

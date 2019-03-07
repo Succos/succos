@@ -66,15 +66,6 @@ use yii\helpers\StringHelper;
 class MultipartFormDataParser extends BaseObject implements RequestParserInterface
 {
     /**
-     * @var bool whether to parse raw body even for 'POST' request and `$_FILES` already populated.
-     * By default this option is disabled saving performance for 'POST' requests, which are already
-     * processed by PHP automatically.
-     * > Note: if this option is enabled, value of `$_FILES` will be reset on each parse.
-     * @since 2.0.13
-     */
-    public $force = false;
-
-    /**
      * @var int upload file max size in bytes.
      */
     private $_uploadFileMaxSize;
@@ -92,7 +83,6 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
         if ($this->_uploadFileMaxSize === null) {
             $this->_uploadFileMaxSize = $this->getByteSize(ini_get('upload_max_filesize'));
         }
-
         return $this->_uploadFileMaxSize;
     }
 
@@ -112,7 +102,6 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
         if ($this->_uploadFileMaxCount === null) {
             $this->_uploadFileMaxCount = ini_get('max_file_uploads');
         }
-
         return $this->_uploadFileMaxCount;
     }
 
@@ -125,17 +114,13 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
     }
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function parse($rawBody, $contentType)
     {
-        if (!$this->force) {
-            if (!empty($_POST) || !empty($_FILES)) {
-                // normal POST request is parsed by PHP automatically
-                return $_POST;
-            }
-        } else {
-            $_FILES = [];
+        if (!empty($_POST) || !empty($_FILES)) {
+            // normal POST request is parsed by PHP automatically
+            return $_POST;
         }
 
         if (empty($rawBody)) {
@@ -156,7 +141,7 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
             if (empty($bodyPart)) {
                 continue;
             }
-            list($headers, $value) = preg_split('/\\R\\R/', $bodyPart, 2);
+            list($headers, $value) = preg_split("/\\R\\R/", $bodyPart, 2);
             $headers = $this->parseHeaders($headers);
 
             if (!isset($headers['content-disposition']['name'])) {
@@ -217,9 +202,9 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
     private function parseHeaders($headerContent)
     {
         $headers = [];
-        $headerParts = preg_split('/\\R/s', $headerContent, -1, PREG_SPLIT_NO_EMPTY);
+        $headerParts = preg_split("/\\R/s", $headerContent, -1, PREG_SPLIT_NO_EMPTY);
         foreach ($headerParts as $headerPart) {
-            if (strpos($headerPart, ':') === false) {
+            if (($separatorPos = strpos($headerPart, ':')) === false) {
                 continue;
             }
 
@@ -262,8 +247,7 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
             $namePart = trim($namePart, ']');
             if ($namePart === '') {
                 $current[] = [];
-                $keys = array_keys($current);
-                $lastKey = array_pop($keys);
+                $lastKey = array_pop(array_keys($current));
                 $current = &$current[$lastKey];
             } else {
                 if (!isset($current[$namePart])) {
@@ -294,7 +278,7 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
             'size',
             'error',
             'tmp_name',
-            'tmp_resource',
+            'tmp_resource'
         ];
 
         $nameParts = preg_split('/\\]\\[|\\[/s', $name);
@@ -306,7 +290,7 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
             }
         } else {
             foreach ($fileInfoAttributes as $attribute) {
-                $files[$baseName][$attribute] = (array) $files[$baseName][$attribute];
+                $files[$baseName][$attribute] = (array)$files[$baseName][$attribute];
             }
         }
 
@@ -335,8 +319,7 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
 
     /**
      * Gets the size in bytes from verbose size representation.
-     *
-     * For example: '5K' => 5*1024.
+     * For example: '5K' => 5*1024
      * @param string $verboseSize verbose size representation.
      * @return int actual size in bytes.
      */
@@ -349,7 +332,8 @@ class MultipartFormDataParser extends BaseObject implements RequestParserInterfa
             return (int) $verboseSize;
         }
         $sizeUnit = trim($verboseSize, '0123456789');
-        $size = trim(str_replace($sizeUnit, '', $verboseSize));
+        $size = str_replace($sizeUnit, '', $verboseSize);
+        $size = trim($size);
         if (!is_numeric($size)) {
             return 0;
         }

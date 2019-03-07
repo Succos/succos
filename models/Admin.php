@@ -1,9 +1,26 @@
 <?php
 
 namespace app\models;
-use Yii;
 
-class Admin extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
+use Yii;
+use yii\web\IdentityInterface;
+
+/**
+ * This is the model class for table "{{%admin}}".
+ *
+ * @property integer $id
+ * @property string $username
+ * @property string $password
+ * @property string $auth_key
+ * @property string $access_token
+ * @property integer $addtime
+ * @property integer $is_delete
+ * @property integer $app_max_count
+ * @property string $permission
+ * @property string $remark
+ * @property integer $expire_time
+ */
+class Admin extends \yii\db\ActiveRecord implements IdentityInterface
 {
     /**
      * @inheritdoc
@@ -19,31 +36,29 @@ class Admin extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
     public function rules()
     {
         return [
-            [['username', 'auth_key', 'password_hash', 'email', 'created_at', 'updated_at'], 'required'],
-            [['role', 'status', 'created_at', 'updated_at'], 'integer'],
-            [['username', 'password_hash', 'password_reset_token', 'email'], 'string', 'max' => 255],
-            [['auth_key'], 'string', 'max' => 32],
+            [['username', 'password', 'auth_key', 'access_token'], 'required'],
+            [['addtime', 'is_delete', 'app_max_count', 'expire_time'], 'integer'],
+            [['permission'], 'string'],
+            [['username', 'password', 'auth_key', 'access_token', 'remark'], 'string', 'max' => 255],
         ];
     }
-
-    /**
-     * @inheritdoc
-     */
     public function attributeLabels()
     {
         return [
             'id' => 'ID',
             'username' => 'Username',
+            'password' => 'Password',
             'auth_key' => 'Auth Key',
-            'password_hash' => 'Password Hash',
-            'password_reset_token' => 'Password Reset Token',
-            'email' => 'Email',
-            'role' => 'Role',
-            'status' => 'Status',
-            'created_at' => 'Created At',
-            'updated_at' => 'Updated At',
+            'access_token' => 'Access Token',
+            'addtime' => 'Addtime',
+            'is_delete' => 'Is Delete',
+            'app_max_count' => 'App Max Count',
+            'permission' => 'Permission',
+            'remark' => 'Remark',
+            'expire_time' => '账户有效期至，0表示永久',
         ];
     }
+
     public static function findIdentity($id)
     {
         return self::findOne($id);
@@ -54,6 +69,23 @@ class Admin extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
             'access_token' => $token,
         ]);
     }
+    public function getId()
+    {
+        return $this->id;
+    }
+
+    /**
+     * Returns a key that can be used to check the validity of a given identity ID.
+     *
+     * The key should be unique for each individual user, and should be persistent
+     * so that it can be used to check the validity of the user identity.
+     *
+     * The space of such keys should be big enough to defeat potential identity attacks.
+     *
+     * This is required if [[User::enableAutoLogin]] is enabled.
+     * @return string a key that is used to check the validity of a given identity ID.
+     * @see validateAuthKey()
+     */
     public function getAuthKey()
     {
         return $this->auth_key;
@@ -72,41 +104,6 @@ class Admin extends \yii\db\ActiveRecord implements \yii\web\IdentityInterface
         return $this->getAuthKey() === $authKey;
     }
 
-    /**
-     * Returns an ID that can uniquely identify a user identity.
-     * @return string|int an ID that uniquely identifies a user identity.
-     */
-    public function getId()
-    {
-        return $this->id;
-    }
-    public function setPassword($password)
-    {
-        $this->password_hash = Yii::$app->security->generatePasswordHash($password);
-    }
-
-    /**
-     * 生成 "remember me" 认证key
-     */
-    public function generateAuthKey()
-    {
-        $this->auth_key = Yii::$app->security->generateRandomString();
-    }
-
-    //登录
-    public static function findByUsername($username)
-    {
-        return static::findOne(['username' => $username]);
-    }
-    /**
-     * 验证密码的准确性
-     *
-     * @param string $password password to validate
-     * @return boolean if password provided is valid for current user
-     */
-    public function validatePassword($password)
-    {
-        return Yii::$app->security->validatePassword($password, $this->password_hash);
-    }
+    /* 所有权限列表 */
 
 }

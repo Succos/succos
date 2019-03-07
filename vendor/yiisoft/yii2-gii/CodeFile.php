@@ -59,12 +59,9 @@ class CodeFile extends BaseObject
      * Constructor.
      * @param string $path the file path that the new code should be saved to.
      * @param string $content the newly generated code content.
-     * @param array $config name-value pairs that will be used to initialize the object properties
      */
-    public function __construct($path, $content, $config = [])
+    public function __construct($path, $content)
     {
-        parent::__construct($config);
-
         $this->path = strtr($path, '/\\', DIRECTORY_SEPARATOR . DIRECTORY_SEPARATOR);
         $this->content = $content;
         $this->id = md5($this->path);
@@ -77,7 +74,7 @@ class CodeFile extends BaseObject
 
     /**
      * Saves the code into the file specified by [[path]].
-     * @return string|bool the error occurred while saving the code file, or true if no error.
+     * @return string|boolean the error occurred while saving the code file, or true if no error.
      */
     public function save()
     {
@@ -131,7 +128,7 @@ class CodeFile extends BaseObject
     /**
      * Returns preview or false if it cannot be rendered
      *
-     * @return bool|string
+     * @return boolean|string
      */
     public function preview()
     {
@@ -153,7 +150,7 @@ class CodeFile extends BaseObject
     /**
      * Returns diff or false if it cannot be calculated
      *
-     * @return bool|string
+     * @return boolean|string
      */
     public function diff()
     {

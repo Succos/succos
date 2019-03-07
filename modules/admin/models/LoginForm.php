@@ -9,7 +9,7 @@ class LoginForm extends Model{
    public $captcha_code;
    public function rules(){
        return  [
-         [['username','captcha_code'],'trim'],
+         [['username'],'trim'],
          [['username','password'],'required'],
        ];
    }
@@ -17,22 +17,23 @@ class LoginForm extends Model{
        return [
            'username'=>'用户名',
            'password'=>'密码',
-            'captcha_code'=>'图片验证码'
+
        ];
    }
    public function login(){
        if (!$this->validate())
            return $this->getModelError();
-
        $admin = Admin::findOne([
            'username' => $this->username,
            'is_delete' => 0,
        ]);
+
        if (!$admin)
            return [
                'code' => 1,
                'msg' => '用户名或密码错误',
            ];
+
        $user_ip = \Yii::$app->request->userIP;
        $cache_key = md5('ADMIN_LOGIN_ERROR_COUNT_' . date('Ymd') . '_' . $user_ip . '_' . $this->username);
        $login_error_count = \Yii::$app->cache->get($cache_key);
@@ -57,7 +58,7 @@ class LoginForm extends Model{
        \Yii::$app->admin->login($admin);
        return [
            'code' => 0,
-           'msg' => '登录成功11',
+           'msg' => '登录成功',
        ];
    }
 }

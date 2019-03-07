@@ -53,6 +53,7 @@ class Module implements EventSubscriberInterface
         }
 
         foreach ($this->modules as $module) {
+            $module->_resetConfig();
             $module->_before($event->getTest());
         }
     }
@@ -64,7 +65,6 @@ class Module implements EventSubscriberInterface
         }
         foreach ($this->modules as $module) {
             $module->_after($e->getTest());
-            $module->_resetConfig();
         }
     }
 

@@ -100,11 +100,6 @@ class Application extends BaseApplication
             $input = $this->getCoreArguments();
         }
 
-        if (!ini_get('register_argc_argv') && empty($_SERVER['argv'])) {
-            //register_argc_argv is always off on HHVM, but it has no effect
-            throw new ConfigurationException('register_argc_argv must be set to On for running Codeception');
-        }
-
         return parent::run($input, $output);
     }
 
@@ -139,24 +134,22 @@ class Application extends BaseApplication
             return $this->coreArguments;
         }
 
-        $argvWithoutConfig = [];
-        if (isset($_SERVER['argv'])) {
-            $argv = $_SERVER['argv'];
+        $argv = $_SERVER['argv'];
+        $argvWithoutConfig = array();
 
-            for ($i = 0; $i < count($argv); $i++) {
-                if (preg_match('/^(?:-([^c-]*)?c|--config(?:=|$))(.*)$/', $argv[$i], $match)) {
-                    if (!empty($match[2])) { //same index
-                        $this->preloadConfiguration($match[2]);
-                    } elseif (isset($argv[$i + 1])) { //next index
-                        $this->preloadConfiguration($argv[++$i]);
-                    }
-                    if (!empty($match[1])) {
-                        $argvWithoutConfig[] = "-" . $match[1]; //rest commands
-                    }
-                    continue;
+        for ($i = 0; $i < count($argv); $i++) {
+            if (preg_match('/^(?:-([^c-]*)?c|--config(?:=|$))(.*)$/', $argv[$i], $match)) {
+                if (!empty($match[2])) { //same index
+                    $this->preloadConfigration($match[2]);
+                } elseif (isset($argv[$i + 1])) { //next index
+                    $this->preloadConfigration($argv[++$i]);
                 }
-                $argvWithoutConfig[] = $argv[$i];
+                if (!empty($match[1])) {
+                    $argvWithoutConfig[] = "-".$match[1]; //rest comands
+                }
+                continue;
             }
+            $argvWithoutConfig[] = $argv[$i];
         }
 
         return $this->coreArguments = new ArgvInput($argvWithoutConfig);
@@ -169,7 +162,7 @@ class Application extends BaseApplication
      *
      * @throws ConfigurationException
      */
-    protected function preloadConfiguration($configFile)
+    protected function preloadConfigration($configFile)
     {
         try {
             Configuration::config($configFile);

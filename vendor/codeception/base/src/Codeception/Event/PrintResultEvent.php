@@ -6,23 +6,23 @@ use Symfony\Component\EventDispatcher\Event;
 class PrintResultEvent extends Event
 {
     /**
-     * @var \PHPUnit\Framework\TestResult
+     * @var \PHPUnit_Framework_TestResult
      */
     protected $result;
 
     /**
-     * @var \PHPUnit\Util\Printer
+     * @var \PHPUnit_Util_Printer
      */
     protected $printer;
 
-    public function __construct(\PHPUnit\Framework\TestResult $result, \PHPUnit\Util\Printer $printer)
+    public function __construct(\PHPUnit_Framework_TestResult $result, \PHPUnit_Util_Printer $printer)
     {
         $this->result = $result;
         $this->printer = $printer;
     }
 
     /**
-     * @return \PHPUnit\Util\Printer
+     * @return \PHPUnit_Util_Printer
      */
     public function getPrinter()
     {
@@ -30,7 +30,7 @@ class PrintResultEvent extends Event
     }
 
     /**
-     * @return \PHPUnit\Framework\TestResult
+     * @return \PHPUnit_Framework_TestResult
      */
     public function getResult()
     {

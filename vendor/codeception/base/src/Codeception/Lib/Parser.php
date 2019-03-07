@@ -6,6 +6,7 @@ use Codeception\Exception\TestParseException;
 use Codeception\Scenario;
 use Codeception\Step;
 use Codeception\Test\Metadata;
+use Codeception\Util\Annotation;
 
 class Parser
 {
@@ -49,7 +50,25 @@ class Parser
 
     public function parseScenarioOptions($code)
     {
-        $this->metadata->setParamsFromAnnotations($this->matchComments($code));
+        $comments = $this->matchComments($code);
+        $this->attachMetadata($comments);
+    }
+
+    public function attachMetadata($comments)
+    {
+        $this->metadata->setGroups(Annotation::fetchAllFromComment('group', $comments));
+        $this->metadata->setEnv(Annotation::fetchAllFromComment('env', $comments));
+        $this->metadata->setDependencies(Annotation::fetchAllFromComment('depends', $comments));
+        $this->metadata->setSkip($this->firstOrNull(Annotation::fetchAllFromComment('skip', $comments)));
+        $this->metadata->setIncomplete($this->firstOrNull(Annotation::fetchAllFromComment('incomplete', $comments)));
+    }
+
+    private function firstOrNull($array)
+    {
+        if (empty($array)) {
+            return null;
+        }
+        return (string)$array[0];
     }
 
     public function parseSteps($code)
@@ -125,7 +144,7 @@ class Parser
         try {
             self::includeFile($file);
         } catch (\ParseError $e) {
-            throw new TestParseException($file, $e->getMessage(), $e->getLine());
+            throw new TestParseException($file, $e->getMessage());
         } catch (\Exception $e) {
             // file is valid otherwise
         }

@@ -1,6 +1,6 @@
 <?php
 
-class ScenarioTest extends \PHPUnit\Framework\TestCase
+class ScenarioTest extends \PHPUnit_Framework_TestCase
 {
     public function testGetHtml()
     {

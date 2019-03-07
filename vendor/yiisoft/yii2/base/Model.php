@@ -7,12 +7,12 @@
 
 namespace yii\base;
 
-use ArrayAccess;
-use ArrayIterator;
-use ArrayObject;
-use IteratorAggregate;
-use ReflectionClass;
 use Yii;
+use ArrayAccess;
+use ArrayObject;
+use ArrayIterator;
+use ReflectionClass;
+use IteratorAggregate;
 use yii\helpers\Inflector;
 use yii\validators\RequiredValidator;
 use yii\validators\Validator;
@@ -54,10 +54,9 @@ use yii\validators\Validator;
  * @author Qiang Xue <qiang.xue@gmail.com>
  * @since 2.0
  */
-class Model extends Component implements StaticInstanceInterface, IteratorAggregate, ArrayAccess, Arrayable
+class Model extends Component implements IteratorAggregate, ArrayAccess, Arrayable
 {
     use ArrayableTrait;
-    use StaticInstanceTrait;
 
     /**
      * The name of the default scenario.
@@ -160,7 +159,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
 
     /**
      * Returns a list of scenarios and the corresponding active attributes.
-     *
      * An active attribute is one that is subject to validation in the current scenario.
      * The returned array should be in the following format:
      *
@@ -246,15 +244,10 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
      *
      * @return string the form name of this model class.
      * @see load()
-     * @throws InvalidConfigException when form is defined with anonymous class and `formName()` method is
-     * not overridden.
      */
     public function formName()
     {
         $reflector = new ReflectionClass($this);
-        if (PHP_VERSION_ID >= 70000 && $reflector->isAnonymous()) {
-            throw new InvalidConfigException('The "formName()" method should be explicitly defined for anonymous models');
-        }
         return $reflector->getShortName();
     }
 
@@ -334,12 +327,12 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
      * Errors found during the validation can be retrieved via [[getErrors()]],
      * [[getFirstErrors()]] and [[getFirstError()]].
      *
-     * @param string[]|string $attributeNames attribute name or list of attribute names that should be validated.
+     * @param array $attributeNames list of attribute names that should be validated.
      * If this parameter is empty, it means any attribute listed in the applicable
      * validation rules should be validated.
      * @param bool $clearErrors whether to call [[clearErrors()]] before performing validation
      * @return bool whether the validation is successful without any error.
-     * @throws InvalidArgumentException if the current scenario is unknown.
+     * @throws InvalidParamException if the current scenario is unknown.
      */
     public function validate($attributeNames = null, $clearErrors = true)
     {
@@ -354,14 +347,12 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
         $scenarios = $this->scenarios();
         $scenario = $this->getScenario();
         if (!isset($scenarios[$scenario])) {
-            throw new InvalidArgumentException("Unknown scenario: $scenario");
+            throw new InvalidParamException("Unknown scenario: $scenario");
         }
 
         if ($attributeNames === null) {
             $attributeNames = $this->activeAttributes();
         }
-
-        $attributeNames = (array)$attributeNames;
 
         foreach ($this->getActiveValidators() as $validator) {
             $validator->validateAttributes($this, $attributeNames);
@@ -381,7 +372,7 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
      */
     public function beforeValidate()
     {
-        $event = new ModelEvent();
+        $event = new ModelEvent;
         $this->trigger(self::EVENT_BEFORE_VALIDATE, $event);
 
         return $event->isValid;
@@ -419,7 +410,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
         if ($this->_validators === null) {
             $this->_validators = $this->createValidators();
         }
-
         return $this->_validators;
     }
 
@@ -438,7 +428,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
                 $validators[] = $validator;
             }
         }
-
         return $validators;
     }
 
@@ -450,7 +439,7 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
      */
     public function createValidators()
     {
-        $validators = new ArrayObject();
+        $validators = new ArrayObject;
         foreach ($this->rules() as $rule) {
             if ($rule instanceof Validator) {
                 $validators->append($rule);
@@ -461,7 +450,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
                 throw new InvalidConfigException('Invalid validation rule: a rule must specify both attribute names and validator type.');
             }
         }
-
         return $validators;
     }
 
@@ -486,7 +474,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
                 return true;
             }
         }
-
         return false;
     }
 
@@ -576,7 +563,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
         if ($attribute === null) {
             return $this->_errors === null ? [] : $this->_errors;
         }
-
         return isset($this->_errors[$attribute]) ? $this->_errors[$attribute] : [];
     }
 
@@ -599,7 +585,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
                 $errors[$name] = reset($es);
             }
         }
-
         return $errors;
     }
 
@@ -613,25 +598,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
     public function getFirstError($attribute)
     {
         return isset($this->_errors[$attribute]) ? reset($this->_errors[$attribute]) : null;
-    }
-
-    /**
-     * Returns the errors for all attributes as a one-dimensional array.
-     * @param bool $showAllErrors boolean, if set to true every error message for each attribute will be shown otherwise
-     * only the first error message for each attribute will be shown.
-     * @return array errors for all attributes as a one-dimensional array. Empty array is returned if no error.
-     * @see getErrors()
-     * @see getFirstErrors()
-     * @since 2.0.14
-     */
-    public function getErrorSummary($showAllErrors)
-    {
-        $lines = [];
-        $errors = $showAllErrors ? $this->getErrors() : $this->getFirstErrors();
-        foreach ($errors as $es) {
-            $lines = array_merge((array)$es, $lines);
-        }
-        return $lines;
     }
 
     /**
@@ -747,7 +713,7 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
     public function onUnsafeAttribute($name, $value)
     {
         if (YII_DEBUG) {
-            Yii::debug("Failed to set unsafe attribute '$name' in '" . get_class($this) . "'.", __METHOD__);
+            Yii::trace("Failed to set unsafe attribute '$name' in '" . get_class($this) . "'.", __METHOD__);
         }
     }
 
@@ -807,7 +773,7 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
         if (!isset($scenarios[$scenario])) {
             return [];
         }
-        $attributes = array_keys(array_flip($scenarios[$scenario]));
+        $attributes = $scenarios[$scenario];
         foreach ($attributes as $i => $attribute) {
             if ($attribute[0] === '!') {
                 $attributes[$i] = substr($attribute, 1);
@@ -862,7 +828,6 @@ class Model extends Component implements StaticInstanceInterface, IteratorAggreg
 
             return true;
         }
-
         return false;
     }
 

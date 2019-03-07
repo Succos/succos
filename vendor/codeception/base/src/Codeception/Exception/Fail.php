@@ -1,7 +1,7 @@
 <?php
 namespace Codeception\Exception;
 
-class Fail extends \PHPUnit\Framework\AssertionFailedError
+class Fail extends \PHPUnit_Framework_AssertionFailedError
 {
 
 }

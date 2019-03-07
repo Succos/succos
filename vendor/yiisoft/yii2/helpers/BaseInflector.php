@@ -236,12 +236,10 @@ class BaseInflector
         'ÿ' => 'y',
     ];
     /**
-     * Shortcut for `Any-Latin; NFKD` transliteration rule.
-     *
-     * The rule is strict, letters will be transliterated with
+     * Shortcut for `Any-Latin; NFKD` transliteration rule. The rule is strict, letters will be transliterated with
      * the closest sound-representation chars. The result may contain any UTF-8 chars. For example:
      * `获取到 どちら Українська: ґ,є, Српска: ђ, њ, џ! ¿Español?` will be transliterated to
-     * `huò qǔ dào dochira Ukraí̈nsʹka: g̀,ê, Srpska: đ, n̂, d̂! ¿Español?`.
+     * `huò qǔ dào dochira Ukraí̈nsʹka: g̀,ê, Srpska: đ, n̂, d̂! ¿Español?`
      *
      * Used in [[transliterate()]].
      * For detailed information see [unicode normalization forms](http://unicode.org/reports/tr15/#Normalization_Forms_Table)
@@ -251,12 +249,10 @@ class BaseInflector
      */
     const TRANSLITERATE_STRICT = 'Any-Latin; NFKD';
     /**
-     * Shortcut for `Any-Latin; Latin-ASCII` transliteration rule.
-     *
-     * The rule is medium, letters will be
+     * Shortcut for `Any-Latin; Latin-ASCII` transliteration rule. The rule is medium, letters will be
      * transliterated to characters of Latin-1 (ISO 8859-1) ASCII table. For example:
      * `获取到 どちら Українська: ґ,є, Српска: ђ, њ, џ! ¿Español?` will be transliterated to
-     * `huo qu dao dochira Ukrainsʹka: g,e, Srpska: d, n, d! ¿Espanol?`.
+     * `huo qu dao dochira Ukrainsʹka: g,e, Srpska: d, n, d! ¿Espanol?`
      *
      * Used in [[transliterate()]].
      * For detailed information see [unicode normalization forms](http://unicode.org/reports/tr15/#Normalization_Forms_Table)
@@ -266,13 +262,11 @@ class BaseInflector
      */
     const TRANSLITERATE_MEDIUM = 'Any-Latin; Latin-ASCII';
     /**
-     * Shortcut for `Any-Latin; Latin-ASCII; [\u0080-\uffff] remove` transliteration rule.
-     *
-     * The rule is loose,
+     * Shortcut for `Any-Latin; Latin-ASCII; [\u0080-\uffff] remove` transliteration rule. The rule is loose,
      * letters will be transliterated with the characters of Basic Latin Unicode Block.
      * For example:
      * `获取到 どちら Українська: ґ,є, Српска: ђ, њ, џ! ¿Español?` will be transliterated to
-     * `huo qu dao dochira Ukrainska: g,e, Srpska: d, n, d! Espanol?`.
+     * `huo qu dao dochira Ukrainska: g,e, Srpska: d, n, d! Espanol?`
      *
      * Used in [[transliterate()]].
      * For detailed information see [unicode normalization forms](http://unicode.org/reports/tr15/#Normalization_Forms_Table)
@@ -312,7 +306,7 @@ class BaseInflector
     }
 
     /**
-     * Returns the singular of the $word.
+     * Returns the singular of the $word
      * @param string $word the english word to singularize
      * @return string Singular noun.
      */
@@ -346,11 +340,10 @@ class BaseInflector
     }
 
     /**
-     * Returns given word as CamelCased.
-     *
+     * Returns given word as CamelCased
      * Converts a word like "send_email" to "SendEmail". It
      * will remove non alphanumeric character from the word, so
-     * "who's online" will be converted to "WhoSOnline".
+     * "who's online" will be converted to "WhoSOnline"
      * @see variablize()
      * @param string $word the word to CamelCase
      * @return string
@@ -392,9 +385,9 @@ class BaseInflector
         $regex = $strict ? '/[A-Z]/' : '/(?<![A-Z])[A-Z]/';
         if ($separator === '_') {
             return strtolower(trim(preg_replace($regex, '_\0', $name), '_'));
+        } else {
+            return strtolower(trim(str_replace('_', $separator, preg_replace($regex, $separator . '\0', $name)), $separator));
         }
-
-        return strtolower(trim(str_replace('_', $separator, preg_replace($regex, $separator . '\0', $name)), $separator));
     }
 
     /**
@@ -421,7 +414,7 @@ class BaseInflector
     }
 
     /**
-     * Returns a human-readable string from $word.
+     * Returns a human-readable string from $word
      * @param string $word the string to humanize
      * @param bool $ucAll whether to set all words to uppercase or not
      * @return string
@@ -435,10 +428,9 @@ class BaseInflector
 
     /**
      * Same as camelize but first char is in lowercase.
-     *
      * Converts a word like "send_email" to "sendEmail". It
      * will remove non alphanumeric character from the word, so
-     * "who's online" will be converted to "whoSOnline".
+     * "who's online" will be converted to "whoSOnline"
      * @param string $word to lowerCamelCase
      * @return string
      */
@@ -450,9 +442,8 @@ class BaseInflector
     }
 
     /**
-     * Converts a class name to its table name (pluralized) naming conventions.
-     *
-     * For example, converts "Person" to "people".
+     * Converts a class name to its table name (pluralized)
+     * naming conventions. For example, converts "Person" to "people"
      * @param string $className the class name for getting related table_name
      * @return string
      */
@@ -505,9 +496,9 @@ class BaseInflector
             }
 
             return transliterator_transliterate($transliterator, $string);
+        } else {
+            return strtr($string, static::$transliteration);
         }
-
-        return strtr($string, static::$transliteration);
     }
 
     /**
@@ -519,9 +510,7 @@ class BaseInflector
     }
 
     /**
-     * Converts a table name to its class name.
-     *
-     * For example, converts "people" to "Person".
+     * Converts a table name to its class name. For example, converts "people" to "Person"
      * @param string $tableName
      * @return string
      */

@@ -153,9 +153,6 @@ $.myToast = function (args) {
     }, timeout);
 };
 
-/**
- * title
- * */
 $.myLoading = function (args) {
     args = args || {};
     var title = args.title || "Loading";
@@ -167,7 +164,7 @@ $.myLoading = function (args) {
         html += '<div class="modal-dialog modal-sm" role="document">';
         html += '<div style="text-align: center;color: #fff">';
         html += '<div style="width: 5rem;height: 5rem;display: inline-block">' + _loading_svg + '</div>';
-        html += '<div class="loading-title">' + 'title' + '</div>';
+        html += '<div class="loading-title">' + title + '</div>';
         html += '</div>';
         html += '</div>';
         html += '</div>';
@@ -184,7 +181,6 @@ $.formSubmit = function (args) {
     if (!args.el)
         return;
     var form = $(args.el);
-    console.log(11181);
     var return_url = form.attr("return");
     var btn = form.find(".submit-btn");
     var data = {};
@@ -196,12 +192,11 @@ $.formSubmit = function (args) {
     if (!args.success)
         data["success"] = function (res) {
             if (res.code == 0) {
-                console.log(1111);
                 $.myToast({
                     content: res.msg,
                     callback: function () {
                         if (return_url)
-                            location.href = return_url;
+                            location.href =return_url;
                     }
                 });
             } else {

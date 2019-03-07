@@ -9,12 +9,13 @@ namespace yii\web;
 
 use Yii;
 use yii\base\BaseObject;
+use ArrayIterator;
 
 /**
  * HeaderCollection is used by [[Response]] to maintain the currently registered HTTP headers.
  *
  * @property int $count The number of headers in the collection. This property is read-only.
- * @property \ArrayIterator $iterator An iterator for traversing the headers in the collection. This property
+ * @property ArrayIterator $iterator An iterator for traversing the headers in the collection. This property
  * is read-only.
  *
  * @author Qiang Xue <qiang.xue@gmail.com>
@@ -32,11 +33,11 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
      * Returns an iterator for traversing the headers in the collection.
      * This method is required by the SPL interface [[\IteratorAggregate]].
      * It will be implicitly called when you use `foreach` to traverse the collection.
-     * @return \ArrayIterator an iterator for traversing the headers in the collection.
+     * @return ArrayIterator an iterator for traversing the headers in the collection.
      */
     public function getIterator()
     {
-        return new \ArrayIterator($this->_headers);
+        return new ArrayIterator($this->_headers);
     }
 
     /**
@@ -73,9 +74,9 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
         $name = strtolower($name);
         if (isset($this->_headers[$name])) {
             return $first ? reset($this->_headers[$name]) : $this->_headers[$name];
+        } else {
+            return $default;
         }
-
-        return $default;
     }
 
     /**
@@ -150,9 +151,9 @@ class HeaderCollection extends BaseObject implements \IteratorAggregate, \ArrayA
             $value = $this->_headers[$name];
             unset($this->_headers[$name]);
             return $value;
+        } else {
+            return null;
         }
-
-        return null;
     }
 
     /**

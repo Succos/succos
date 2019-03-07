@@ -269,86 +269,9 @@ $(document).ready(function () {
         };
     })();
 
-    //表单自动提交
-    (function () {
-        $(document).on("click", ".auto-submit-form .submit-btn", "click", function () {
-            var form = $(this).parents("form");
-            var return_url = form.attr("data-return");
-            var timeout = form.attr("data-timeout");
-            var btn = $(this);
-            var error = form.find(".form-error");
-            var success = form.find(".form-success");
-            error.hide();
-            success.hide();
-            btn.btnLoading("正在提交");
-            $.ajax({
-                url: form.attr("action"),
-                type: form.attr("method"),
-                data: form.serialize(),
-                dataType: "json",
-                success: function (res) {
-                    if (res.code == 0) {
-                        success.html(res.msg).show();
-                        if (return_url) {
-                            if (timeout)
-                                timeout = 1000 * parseInt(timeout);
-                            else
-                                timeout = 1500;
-                            setTimeout(function () {
-                                location.href = return_url;
-                            }, timeout);
-                        } else {
-                            btn.btnReset();
-                        }
-                    }
-                    if (res.code == 1) {
-                        error.html(res.msg).show();
-                        btn.btnReset();
-                    }
-                }
-            });
-            return false;
-        });
-
-        $(document).on("submit", ".auto-submit-form", function () {
-            var form = $(this);
-            var return_url = form.attr("data-return");
-            var timeout = form.attr("data-timeout");
-            var btn = form.find(".submit-btn");
-            var error = form.find(".form-error");
-            var success = form.find(".form-success");
-            error.hide();
-            success.hide();
-            btn.btnLoading("正在提交");
-            $.ajax({
-                url: form.attr("action"),
-                type: form.attr("method"),
-                data: form.serialize(),
-                dataType: "json",
-                success: function (res) {
-                    if (res.code == 0) {
-                        success.html(res.msg).show();
-                        if (return_url) {
-                            if (timeout)
-                                timeout = 1000 * parseInt(timeout);
-                            else
-                                timeout = 1500;
-                            setTimeout(function () {
-                                location.href = return_url;
-                            }, timeout);
-                        } else {
-                            btn.btnReset();
-                        }
-                    }
-                    if (res.code == 1) {
-                        btn.btnReset();
-                        error.html(res.msg).show();
-                    }
-                }
-            });
-            return false;
-        });
-    })();
+   
+       
+       
 
     //单图片上传
     /*

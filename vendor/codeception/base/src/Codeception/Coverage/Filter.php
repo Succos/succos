@@ -9,7 +9,7 @@ use Symfony\Component\Finder\Finder;
 class Filter
 {
     /**
-     * @var \SebastianBergmann\CodeCoverage\CodeCoverage
+     * @var \PHP_CodeCoverage
      */
     protected $phpCodeCoverage = null;
 
@@ -19,31 +19,31 @@ class Filter
     protected static $c3;
 
     /**
-     * @var \SebastianBergmann\CodeCoverage\Filter
+     * @var \PHP_CodeCoverage_Filter
      */
     protected $filter = null;
 
-    public function __construct(\SebastianBergmann\CodeCoverage\CodeCoverage $phpCoverage)
+    public function __construct(\PHP_CodeCoverage $phpCoverage)
     {
         $this->phpCodeCoverage = $phpCoverage
             ? $phpCoverage
-            : new \SebastianBergmann\CodeCoverage\CodeCoverage;
+            : new \PHP_CodeCoverage;
 
         $this->filter = $this->phpCodeCoverage->filter();
     }
 
     /**
-     * @param \SebastianBergmann\CodeCoverage\CodeCoverage $phpCoverage
+     * @param \PHP_CodeCoverage $phpCoverage
      * @return Filter
      */
-    public static function setup(\SebastianBergmann\CodeCoverage\CodeCoverage $phpCoverage)
+    public static function setup(\PHP_CodeCoverage $phpCoverage)
     {
         self::$c3 = new self($phpCoverage);
         return self::$c3;
     }
 
     /**
-     * @return null|\SebastianBergmann\CodeCoverage\CodeCoverage
+     * @return null|\PHP_CodeCoverage
      */
     public function getPhpCodeCoverage()
     {
@@ -166,7 +166,7 @@ class Filter
     }
 
     /**
-     * @return \SebastianBergmann\CodeCoverage\Filter
+     * @return \PHP_CodeCoverage_Filter
      */
     public function getFilter()
     {

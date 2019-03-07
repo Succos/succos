@@ -10,9 +10,7 @@ namespace yii\filters;
 use Yii;
 use yii\base\Action;
 use yii\base\ActionFilter;
-use yii\base\DynamicContentAwareInterface;
-use yii\base\DynamicContentAwareTrait;
-use yii\caching\CacheInterface;
+use yii\caching\Cache;
 use yii\caching\Dependency;
 use yii\di\Instance;
 use yii\web\Response;
@@ -51,23 +49,15 @@ use yii\web\Response;
  * @author Sergey Makinen <sergey@makinen.ru>
  * @since 2.0
  */
-class PageCache extends ActionFilter implements DynamicContentAwareInterface
+class PageCache extends ActionFilter
 {
-    use DynamicContentAwareTrait;
-
-    /**
-     * Page cache version, to detect incompatibilities in cached values when the
-     * data format of the cache changes.
-     */
-    const PAGE_CACHE_VERSION = 1;
-
     /**
      * @var bool whether the content being cached should be differentiated according to the route.
      * A route consists of the requested controller ID and action ID. Defaults to `true`.
      */
     public $varyByRoute = true;
     /**
-     * @var CacheInterface|array|string the cache object or the application component ID of the cache object.
+     * @var Cache|array|string the cache object or the application component ID of the cache object.
      * After the PageCache object is created, if you want to change this property,
      * you should only assign it with a cache object.
      * Starting from version 2.0.2, this can also be a configuration array for creating the object.
@@ -98,7 +88,7 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
      */
     public $dependency;
     /**
-     * @var string[]|string list of factors that would cause the variation of the content being cached.
+     * @var array list of factors that would cause the variation of the content being cached.
      * Each factor is a string representing a variation (e.g. the language, a GET parameter).
      * The following variation setting will cause the content to be cached in different versions
      * according to the current application language:
@@ -134,10 +124,17 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
      * @since 2.0.4
      */
     public $cacheHeaders = true;
+    /**
+     * @var array a list of placeholders for embedding dynamic contents. This property
+     * is used internally to implement the content caching feature. Do not modify it.
+     * @internal
+     * @since 2.0.11
+     */
+    public $dynamicPlaceholders;
 
 
     /**
-     * {@inheritdoc}
+     * @inheritdoc
      */
     public function init()
     {
@@ -159,7 +156,7 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
             return true;
         }
 
-        $this->cache = Instance::ensure($this->cache, 'yii\caching\CacheInterface');
+        $this->cache = Instance::ensure($this->cache, Cache::className());
 
         if (is_array($this->dependency)) {
             $this->dependency = Yii::createObject($this->dependency);
@@ -167,18 +164,18 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
 
         $response = Yii::$app->getResponse();
         $data = $this->cache->get($this->calculateCacheKey());
-        if (!is_array($data) || !isset($data['cacheVersion']) || $data['cacheVersion'] !== static::PAGE_CACHE_VERSION) {
-            $this->view->pushDynamicContent($this);
+        if (!is_array($data) || !isset($data['cacheVersion']) || $data['cacheVersion'] !== 1) {
+            $this->view->cacheStack[] = $this;
             ob_start();
             ob_implicit_flush(false);
             $response->on(Response::EVENT_AFTER_SEND, [$this, 'cacheResponse']);
-            Yii::debug('Valid page content is not found in the cache.', __METHOD__);
+            Yii::trace('Valid page content is not found in the cache.', __METHOD__);
             return true;
+        } else {
+            $this->restoreResponse($response, $data);
+            Yii::trace('Valid page content is found in the cache.', __METHOD__);
+            return false;
         }
-
-        $this->restoreResponse($response, $data);
-        Yii::debug('Valid page content is found in the cache.', __METHOD__);
-        return false;
     }
 
     /**
@@ -220,7 +217,13 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
             }
         }
         if (!empty($data['dynamicPlaceholders']) && is_array($data['dynamicPlaceholders'])) {
-            $response->content = $this->updateDynamicContent($response->content, $data['dynamicPlaceholders'], true);
+            if (empty($this->view->cacheStack)) {
+                // outermost cache: replace placeholder with dynamic content
+                $response->content = $this->updateDynamicContent($response->content, $data['dynamicPlaceholders']);
+            }
+            foreach ($data['dynamicPlaceholders'] as $name => $statements) {
+                $this->view->addDynamicPlaceholder($name, $statements);
+            }
         }
         $this->afterRestoreResponse(isset($data['cacheData']) ? $data['cacheData'] : null);
     }
@@ -231,31 +234,37 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
      */
     public function cacheResponse()
     {
-        $this->view->popDynamicContent();
+        array_pop($this->view->cacheStack);
         $beforeCacheResponseResult = $this->beforeCacheResponse();
         if ($beforeCacheResponseResult === false) {
-            echo $this->updateDynamicContent(ob_get_clean(), $this->getDynamicPlaceholders());
+            $content = ob_get_clean();
+            if (empty($this->view->cacheStack) && !empty($this->dynamicPlaceholders)) {
+                $content = $this->updateDynamicContent($content, $this->dynamicPlaceholders);
+            }
+            echo $content;
             return;
         }
 
         $response = Yii::$app->getResponse();
         $data = [
-            'cacheVersion' => static::PAGE_CACHE_VERSION,
+            'cacheVersion' => 1,
             'cacheData' => is_array($beforeCacheResponseResult) ? $beforeCacheResponseResult : null,
-            'content' => ob_get_clean(),
+            'content' => ob_get_clean()
         ];
         if ($data['content'] === false || $data['content'] === '') {
             return;
         }
 
-        $data['dynamicPlaceholders'] = $this->getDynamicPlaceholders();
+        $data['dynamicPlaceholders'] = $this->dynamicPlaceholders;
         foreach (['format', 'version', 'statusCode', 'statusText'] as $name) {
             $data[$name] = $response->{$name};
         }
         $this->insertResponseCollectionIntoData($response, 'headers', $data);
         $this->insertResponseCollectionIntoData($response, 'cookies', $data);
         $this->cache->set($this->calculateCacheKey(), $data, $this->duration, $this->dependency);
-        $data['content'] = $this->updateDynamicContent($data['content'], $this->getDynamicPlaceholders());
+        if (empty($this->view->cacheStack) && !empty($this->dynamicPlaceholders)) {
+            $data['content'] = $this->updateDynamicContent($data['content'], $this->dynamicPlaceholders);
+        }
         echo $data['content'];
     }
 
@@ -289,6 +298,22 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
     }
 
     /**
+     * Replaces placeholders in content by results of evaluated dynamic statements.
+     * @param string $content content to be parsed.
+     * @param array $placeholders placeholders and their values.
+     * @return string final content.
+     * @since 2.0.11
+     */
+    protected function updateDynamicContent($content, $placeholders)
+    {
+        foreach ($placeholders as $name => $statements) {
+            $placeholders[$name] = $this->view->evaluateDynamicContent($statements);
+        }
+
+        return strtr($content, $placeholders);
+    }
+
+    /**
      * @return array the key used to cache response properties.
      * @since 2.0.3
      */
@@ -298,14 +323,11 @@ class PageCache extends ActionFilter implements DynamicContentAwareInterface
         if ($this->varyByRoute) {
             $key[] = Yii::$app->requestedRoute;
         }
-        return array_merge($key, (array)$this->variations);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getView()
-    {
-        return $this->view;
+        if (is_array($this->variations)) {
+            foreach ($this->variations as $value) {
+                $key[] = $value;
+            }
+        }
+        return $key;
     }
 }

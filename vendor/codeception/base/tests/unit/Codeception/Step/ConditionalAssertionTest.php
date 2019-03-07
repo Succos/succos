@@ -2,7 +2,7 @@
 
 use \Codeception\Step\ConditionalAssertion;
 
-class ConditionalAssertionTest extends \PHPUnit\Framework\TestCase
+class ConditionalAssertionTest extends \PHPUnit_Framework_TestCase
 {
     public function testCantSeeToString()
     {

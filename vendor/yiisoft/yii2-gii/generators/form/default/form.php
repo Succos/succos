@@ -13,7 +13,7 @@ use yii\helpers\Html;
 use yii\widgets\ActiveForm;
 
 /* @var $this yii\web\View */
-/* @var $model <?= ltrim($generator->modelClass, '\\') ?> */
+/* @var $model <?= $generator->modelClass ?> */
 /* @var $form ActiveForm */
 <?= "?>" ?>
 

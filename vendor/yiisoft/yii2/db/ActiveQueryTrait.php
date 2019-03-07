@@ -104,27 +104,52 @@ trait ActiveQueryTrait
     }
 
     /**
-     * Converts found rows into model instances.
+     * Converts found rows into model instances
      * @param array $rows
      * @return array|ActiveRecord[]
      * @since 2.0.11
      */
     protected function createModels($rows)
     {
+        $models = [];
         if ($this->asArray) {
-            return $rows;
+            if ($this->indexBy === null) {
+                return $rows;
+            }
+            foreach ($rows as $row) {
+                if (is_string($this->indexBy)) {
+                    $key = $row[$this->indexBy];
+                } else {
+                    $key = call_user_func($this->indexBy, $row);
+                }
+                $models[$key] = $row;
+            }
         } else {
-            $models = [];
             /* @var $class ActiveRecord */
             $class = $this->modelClass;
-            foreach ($rows as $row) {
-                $model = $class::instantiate($row);
-                $modelClass = get_class($model);
-                $modelClass::populateRecord($model, $row);
-                $models[] = $model;
+            if ($this->indexBy === null) {
+                foreach ($rows as $row) {
+                    $model = $class::instantiate($row);
+                    $modelClass = get_class($model);
+                    $modelClass::populateRecord($model, $row);
+                    $models[] = $model;
+                }
+            } else {
+                foreach ($rows as $row) {
+                    $model = $class::instantiate($row);
+                    $modelClass = get_class($model);
+                    $modelClass::populateRecord($model, $row);
+                    if (is_string($this->indexBy)) {
+                        $key = $model->{$this->indexBy};
+                    } else {
+                        $key = call_user_func($this->indexBy, $model);
+                    }
+                    $models[$key] = $model;
+                }
             }
-            return $models;
         }
+
+        return $models;
     }
 
     /**
@@ -137,9 +162,7 @@ trait ActiveQueryTrait
     {
         $primaryModel = reset($models);
         if (!$primaryModel instanceof ActiveRecordInterface) {
-            /* @var $modelClass ActiveRecordInterface */
-            $modelClass = $this->modelClass;
-            $primaryModel = $modelClass::instance();
+            $primaryModel = new $this->modelClass;
         }
         $relations = $this->normalizeRelations($primaryModel, $with);
         /* @var $relation ActiveQuery */

@@ -1,24 +1,20 @@
 <?php
-$params = require __DIR__ . '/params.php';
-$db = require __DIR__ . '/test_db.php';
+$params = require(__DIR__ . '/params.php');
+$dbParams = require(__DIR__ . '/test_db.php');
 
 /**
  * Application configuration shared by all test types
  */
 return [
     'id' => 'basic-tests',
-    'basePath' => dirname(__DIR__),
-    'aliases' => [
-        '@bower' => '@vendor/bower-asset',
-        '@npm'   => '@vendor/npm-asset',
-    ],
+    'basePath' => dirname(__DIR__),    
     'language' => 'en-US',
     'components' => [
-        'db' => $db,
+        'db' => $dbParams,
         'mailer' => [
             'useFileTransport' => true,
         ],
-        'assetManager' => [
+        'assetManager' => [            
             'basePath' => __DIR__ . '/../web/assets',
         ],
         'urlManager' => [
@@ -26,7 +22,7 @@ return [
         ],
         'user' => [
             'identityClass' => 'app\models\User',
-        ],
+        ],        
         'request' => [
             'cookieValidationKey' => 'test',
             'enableCsrfValidation' => false,
@@ -36,7 +32,7 @@ return [
                 'domain' => 'localhost',
             ],
             */
-        ],
+        ],        
     ],
     'params' => $params,
 ];

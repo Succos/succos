@@ -1,50 +1,54 @@
 <?php
 
-/* @var $this \yii\web\View */
 /* @var $panel yii\debug\panels\UserPanel */
 
-use yii\bootstrap\Tabs;
+use yii\grid\GridView;
 use yii\widgets\DetailView;
 
 ?>
 
-<h1>User</h1>
+<h1>User Info</h1>
 
-<?php
-if (isset($panel->data['identity'])) {
-    $items = [
-        [
-            'label'   => 'User',
-            'content' => '<h2>User Info</h2>' . DetailView::widget([
-                'model'      => $panel->data['identity'],
-                'attributes' => $panel->data['attributes']
-            ]),
-            'active'  => true,
-        ],
-    ];
-    if ($panel->data['rolesProvider'] || $panel->data['permissionsProvider']) {
-        $items[] = [
-                'label'   => 'Roles and Permissions',
-                'content' => $this->render('roles', ['panel' => $panel])
-            ];
-    }
 
-    if ($panel->canSwitchUser()) {
-        $items[] = [
-            'label'   => 'Switch User',
-            'content' => $this->render(
-                'switch',
-                [
-                    'panel' => $panel
-                ]
-            )
-        ];
-    }
+<?php if (!Yii::$app->user->isGuest) {
 
-    echo Tabs::widget([
-        'items' => $items,
+    echo DetailView::widget([
+        'model' => $panel->data['identity'],
+        'attributes' => $panel->data['attributes']
     ]);
 
-} else {
-    echo 'Is guest.';
+
+    if ($panel->data['rolesProvider']) {
+        echo '<h2>Roles</h2>';
+
+        echo GridView::widget([
+            'dataProvider' => $panel->data['rolesProvider'],
+            'columns' => [
+                'name',
+                'description',
+                'ruleName',
+                'data',
+                'createdAt:datetime',
+                'updatedAt:datetime'
+            ]
+        ]);
+    }
+
+    if ($panel->data['permissionsProvider']) {
+        echo '<h2>Permissions</h2>';
+
+        echo GridView::widget([
+            'dataProvider' => $panel->data['permissionsProvider'],
+            'columns' => [
+                'name',
+                'description',
+                'ruleName',
+                'data',
+                'createdAt:datetime',
+                'updatedAt:datetime'
+            ]
+        ]);
+    }
+
 } ?>
+
