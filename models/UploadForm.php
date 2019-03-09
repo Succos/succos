@@ -73,13 +73,13 @@ class UploadForm extends Model
         }
         if (!$name)
             $name = 'image';
-        echo 11;
+
         $this->image = UploadedFile::getInstanceByName($name);
-        echo 22;
+
         if (!$this->validate())
 
             return $this->errors;
-        echo 33;
+
         $allow_type = ['jpg', 'jpeg', 'gif', 'png', 'bmp', 'webp',];
         if (!in_array($this->image->extension, $allow_type)) {
             return [
