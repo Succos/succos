@@ -3,6 +3,7 @@
 namespace app\modules\mch\controllers;
 
 use app\modules\mch\controllers\Controller;
+use app\modules\mch\models\WechatSettingForm;
 use yii\helpers\VarDumper;
 
 class StoreController extends Controller
@@ -17,11 +18,19 @@ class StoreController extends Controller
            'store' => $this->store,
        ]);
     }
+    public function actionSetting()
+    {
+
+        return $this->render('setting');
+
+    }
+
     public function actionWechatSetting(){
         if (\Yii::$app->request->isPost){
-            print_r($this->wechat_app);
-            print_r($this->store->wechat_app_id);
-            return '222222';
+            $form=new WechatSettingForm();
+            $form->attributes=\Yii::$app->request->post();
+            $form->model=$this->wechat_app;
+            return $this->renderJson($form->save());
         };
         return $this->render('wechat-seting');
     }

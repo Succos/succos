@@ -33,15 +33,14 @@ try {
 
 return [
     'class' => 'yii\db\Connection',
-<<<<<<< HEAD
+
     'dsn' => 'mysql:host=' . $config['db']['master']['host'] . ';port=' . $config['db']['master']['port'] . ';dbname=' . $config['db']['master']['database'],
     'username' => $config['db']['master']['username'],
     'password' => $config['db']['master']['password'],
-=======
+
     'dsn' => 'mysql:host=106.14.122.40;dbname=yii',
     'username' => 'yii',
     'password' => 'root',
->>>>>>> eb0c1e657b3c61ae4923a08b4be7124d3592b37b
     'charset' => 'utf8',
     'tablePrefix' => 'hjmall_',
 ];

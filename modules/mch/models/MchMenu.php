@@ -33,7 +33,7 @@ class MchMenu
                         'list' => [
                             [
                                 'name' => '微信配置',
-                                'route' => 'www.baidu.com',
+                                'route' => 'mch/store/wechat-setting',
                             ],
                             [
                                 'name' => '商城设置',
@@ -387,7 +387,7 @@ class MchMenu
             ],
             [
                 'name' => '应用专区',
-                'route' => 'mch/store/index',
+                'route' => 'mch/miaosha/index',
                 'icon' => 'icon-pintu-m',
                 'list' => [
                     [
@@ -591,14 +591,42 @@ class MchMenu
 
 
         ];
+
+        $menu_list = $this->resetList($menu_list);
+        foreach ($menu_list as $i => $item) {
+            if (is_array($item['list']) && count($item['list']) == 0) {
+                unset($menu_list[$i]);
+                continue;
+            }
+            if (is_array($item['list'])) {
+                $menu_list[$i]['route'] = $item['list'][0]['route'];
+            }
+        }
+        $menu_list = array_values($menu_list);
+
         return $menu_list;
 
     }
 
-    public function resetList($list)
+    private function resetList($list)
     {
         foreach ($list as $i => $item) {
-
+            if($item['name'] == '教程管理'){
+                $a = Option::get('handle',0,'admin');
+                if($a){
+                    $arr = json_decode($a,true);
+                    if($arr['status'] == 0){
+                        $list[$i]['admin'] = true;
+                        $item['admin'] = true;
+                    }else{
+                        $list[$i]['admin'] = false;
+                        $item['admin'] = false;
+                    }
+                }else{
+                    $list[$i]['admin'] = true;
+                    $item['admin'] = true;
+                }
+            }
             if (isset($item['admin']) && $item['admin'] && !$this->is_admin) {
                 unset($list[$i]);
                 continue;
@@ -616,7 +644,6 @@ class MchMenu
                 continue;
             }
             if (isset($item['list']) && is_array($item['list'])) {
-
                 $list[$i]['list'] = $this->resetList($item['list']);
             }
         }

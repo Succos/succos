@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: luwei
- * Date: 2017/6/14
- * Time: 9:36
- */
 
 namespace app\models;
 

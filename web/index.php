@@ -4,8 +4,7 @@ defined('YII_ENV') or define('YII_ENV', 'dev');
 
 require(__DIR__ . '/../vendor/autoload.php');
 require(__DIR__ . '/../vendor/yiisoft/yii2/Yii.php');
-//defined('YII_RUN') or define('YII_RUN', true);
-//defined('WE7_MODULE_NAME') or define('WE7_MODULE_NAME', 'zjhj_mall');
+
 
 
 
