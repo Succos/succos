@@ -3,6 +3,7 @@
 namespace app\modules\mch\controllers;
 
 use app\modules\mch\controllers\Controller;
+use app\modules\mch\models\StoreSettingForm;
 use app\modules\mch\models\WechatSettingForm;
 use yii\helpers\VarDumper;
 
@@ -20,7 +21,13 @@ class StoreController extends Controller
     }
     public function actionSetting()
     {
+        if (\Yii::$app->request->post()){
+            $form=new StoreSettingForm();
+            $form->attributes=\Yii::$app->request->post();
+            $form->store_id=$this->store->id;
+            $this->renderJson($form->save());
 
+        }
         return $this->render('setting');
 
     }

@@ -5,12 +5,6 @@ namespace luweiss\wechat;
 use Curl\Curl;
 use Doctrine\Common\Cache\FilesystemCache;
 
-/**
- * Created by IntelliJ IDEA.
- * User: luwei
- * Date: 2017/5/26
- * Time: 9:55
- */
 class Wechat
 {
     public $errMsg = 0;
