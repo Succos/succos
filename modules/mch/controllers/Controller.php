@@ -5,6 +5,7 @@ namespace app\modules\mch\controllers;
 use app\models\Store;
 use app\models\WechatApp;
 use app\modules\mch\models\MchMenu;
+use yii\helpers\VarDumper;
 
 class Controller extends \app\controllers\Controller
 {
@@ -33,6 +34,7 @@ class Controller extends \app\controllers\Controller
         $this->enableCsrfValidation=false;
         $this->store = Store::findOne([
             'id' => \Yii::$app->session->get('store_id'),
+
         ]);
         $this->wechat_app=WechatApp::findOne(['id'=>$this->store->wechat_app_id]);
 

@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by PhpStorm.
- * User: Administrator
- * Date: 2019/3/7
- * Time: 21:55
- */
 namespace  app\modules\mch\models;
 
 

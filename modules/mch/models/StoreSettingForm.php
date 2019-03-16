@@ -13,7 +13,6 @@ class StoreSettingForm extends Model
     public $store_id;
     public $name;
     public $order_send_tpl;
-
     public $app_id;
     public $app_secret;
     public $mch_id;

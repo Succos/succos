@@ -2,6 +2,8 @@
 
 namespace app\modules\mch\controllers;
 
+use app\models\Model;
+use app\models\WechatTemplateMessage;
 use app\modules\mch\controllers\Controller;
 use app\modules\mch\models\StoreSettingForm;
 use app\modules\mch\models\WechatSettingForm;
@@ -19,6 +21,34 @@ class StoreController extends Controller
            'store' => $this->store,
        ]);
     }
+    public function actionSms(){
+
+
+    }
+    public function actionTplMsg(){
+        $model = WechatTemplateMessage::findOne(['store_id' => $this->store->id]);
+        if (!$model) {
+            $model = new WechatTemplateMessage();
+            $model->store_id = $this->store->id;
+        }
+        if (\Yii::$app->request->isPost) {
+            $model->attributes = \Yii::$app->request->post();
+            $model->store_id = $this->store->id;
+            if ($model->save()) {
+                return $this->renderJson([
+                    'code' => 0,
+                    'msg' => '保存成功',
+                ]);
+            } else {
+                return $this->renderJson((new Model())->getModelError($model));
+            }
+        } else {
+            return $this->render('tpl-msg', [
+                'model' => $model,
+            ]);
+        }
+    }
+
     public function actionSetting()
     {
         if (\Yii::$app->request->post()){
@@ -26,7 +56,6 @@ class StoreController extends Controller
             $form->attributes=\Yii::$app->request->post();
             $form->store_id=$this->store->id;
             $this->renderJson($form->save());
-
         }
         return $this->render('setting');
 

@@ -1,5 +1,5 @@
 <?php
-namespace app\models;
+namespace app\modules\admin\models;
 
 class Model extends \yii\base\Model
 {
