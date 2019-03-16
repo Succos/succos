@@ -1,10 +1,4 @@
 <?php
-/**
- * Created by IntelliJ IDEA.
- * User: luwei
- * Date: 2017/10/2
- * Time: 13:43
- */
 
 namespace app\modules\admin\controllers;
 
